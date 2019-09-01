@@ -3,6 +3,9 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
 		<title>Linux 下安装 OpenCV</title>
 		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
 		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
@@ -29,7 +32,8 @@ git clone https://github.com/opencv/opencv.git
 git clone https://github.com/opencv/opencv_contrib.git</span></code></pre><h2>使用CMake从源代码构建OpenCV</h2><p>1、创建一个临时目录，我们将其指定为&lt;cmake_build_dir&gt;，您要将生成的Makefile，项目文件以及目标文件和输出二进制文件放在那里。</p><p>例如：</p><pre style="max-width: 100%;"><code class="javascript hljs">cd ~<span class="hljs-regexp">/opencv
 mkdir build
 cd build</span></code></pre><p>2、配置。运行cmake [&lt;some optional parameters&gt;] &lt;OpenCV源目录的路径&gt;</p><p>例如</p><pre style="max-width: 100%;"><code class="javascript hljs">cmake -D CMAKE_BUILD_TYPE = Release -D CMAKE_INSTALL_PREFIX = <span class="hljs-regexp">/ usr /</span> local ..</code></pre><p>或cmake-gui</p><ul><li>设置OpenCV源代码的完整路径，例如/ home / user / opencv</li><li>设置完整路径到&lt;cmake_build_dir&gt;，例如/ home / user / opencv / build</li><li>设置可选参数</li><li>运行：“Configure”</li><li>运行：“Generate”</li></ul><p>注意：</p><pre style="max-width: 100%;"><code class="javascript hljs">cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<span class="hljs-regexp">/usr/</span>local ..</code>如果上述示例不起作用，则在-D之后不使用空格。</pre><p>3、一些参数说明</p><ul><li>构建类型：&nbsp;CMAKE_BUILD_TYPE=Release\Debug</li><li>使用opencv_contrib的模块构建OPENCV_EXTRA_MODULES_PATH到&lt;path to opencv_contrib / modules /&gt;</li><li>将BUILD_DOCS设置为构建文档</li><li>设置BUILD_EXAMPLES来构建所有示例</li></ul><p>4、[可选]构建python。设置以下python参数：</p><ul><li>PYTHON2（3）_EXECUTABLE = &lt;path to python&gt;</li><li>PYTHON_INCLUDE_DIR = / usr / include / python &lt;version&gt;</li><li>PYTHON_INCLUDE_DIR2 = / usr / include / x86_64-linux-gnu / python &lt;version&gt;</li><li>PYTHON_LIBRARY = /usr/lib/x86_64-linux-gnu/libpython&lt;version&gt;.so</li><li>PYTHON2（3）_NUMPY_INCLUDE_DIRS = / usr / lib / python &lt;version&gt; / dist-packages / numpy / core / include /</li></ul><p>5、 [可选]构建java。</p><ul><li>取消设置参数：BUILD_SHARED_LIBS<br></li><li>取消BUILD_EXAMPLES，BUILD_TESTS，BUILD_PERF_TESTS，因为它们都将与OpenCV静态链接并且可以占用很多内存也很有用。<br></li></ul>
-	<pre class="note"><code>如果安装时发生意外，编译失败，就是关于ippicv_2019_lnx_intel64_general_20180723.tgz下载失败，<a href="https://blog.csdn.net/orDream/article/details/84311697" style="background:#282828; padding:5px; border-radius:5px;">查看这</a>来解决。</code></pre>
+	
+    <pre class="note"><code>如果安装时发生意外，编译失败，就是关于ippicv_2019_lnx_intel64_general_20180723.tgz下载失败，<a href="https://blog.csdn.net/orDream/article/details/84311697" style="background:#282828; padding:5px; border-radius:5px;">查看这</a>来解决。</code></pre>
 	
 	<p>6、建立。从构建目录执行make，建议在多个线程中执行此操作</p><p>例如：</p><pre style="max-width: 100%;"><code class="javascript hljs">make -j7 # runs <span class="hljs-number">7</span> jobs <span class="hljs-keyword">in</span> parallel
 </code></pre>
