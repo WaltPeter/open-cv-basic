@@ -75,3 +75,18 @@ img {
 	max-height: 60vh; 
 	border-radius: 5px; 
 }
+
+.white { 
+	width: auto !important;  
+	display: inline-block !important; 
+	box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 3px;
+    font-family: Courier, monospace, Consolas, "Liberation Mono", Menlo;
+    overflow-x: auto;
+    border: 1px solid #282828;
+    color: #282828;
+	background: white; 
+}

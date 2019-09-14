@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>改变图像亮度</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">改变图像亮度</div>
+		<div class="content">
+			
+			<h1>改变亮度</h1>
+			改变图像的亮度是常用的点操作。在该操作中，图像中的每个像素的值应该增加/减少常数。要更改视频的亮度，应对视频中的每个帧执行相同的操作。
+			<br>
+			如果要增加图像的亮度，则必须为图像中的每个像素添加一些正数值。<br>
+			
+			<pre class="white">new_image (i, j) = image(i, j) + c</pre><br>
+			
+			如果要降低图像的亮度，则必须从图像中的每个像素中减去一些正常数值。<br>
+			
+			<pre class="white">new_image (i, j) = image(i, j) - c</pre><br>
+			
+			<h2>使用OpenCV更改图像的亮度</h2>
+			现在，我将向您展示如何使用OpenCV C ++示例增加和减少图像的亮度。<br>
+			建议首先浏览“<a href="../load-and-display-image/index.html">载入并显示图像</a>”，以便更好地理解以下示例。
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv)
+{
+    //读取图像
+    Mat image = imread("My Guitar.jpg");
+
+    //检测失败
+    if (image.empty())
+    {
+        cout &lt;&lt; "Could not open or find the image" &lt;&lt; endl;
+        cin.get(); //等待键盘
+        return -1;
+    }
+
+    Mat imageBrighnessHigh50;
+    image.convertTo(imageBrighnessHigh50, -1, 1, 50); //亮度加50
+
+    Mat imageBrighnessHigh100;
+    image.convertTo(imageBrighnessHigh100, -1, 1, 100); //亮度加100
+
+    Mat imageBrighnessLow50;
+    image.convertTo(imageBrighnessLow50, -1, 1, -50); //亮度减50
+
+    Mat imageBrighnessLow100;
+    image.convertTo(imageBrighnessLow100, -1, 1, -100); //亮度减100
+
+    //创建窗口
+	namedWindow("Original", WINDOW_NORMAL);
+    namedWindow("Brightness +50", WINDOW_NORMAL);
+    namedWindow("Brightness +100", WINDOW_NORMAL);
+    namedWindow("Brightness -50", WINDOW_NORMAL);
+    namedWindow("Brightness -100", WINDOW_NORMAL);
+
+    //显示图像
+    imshow("Original", image);
+    imshow("Brightness +50", imageBrighnessHigh50);
+    imshow("Brightness +100", imageBrighnessHigh100);
+    imshow("Brightness -50", imageBrighnessLow50);
+    imshow("Brightness -100", imageBrighnessLow100);
+
+    waitKey(0); //等待键盘
+
+    destroyAllWindows(); //毁灭窗口们
+
+    return 0;
+}</pre>
+			
+			将上面的代码段复制并粘贴到IDE中并运行它。请注意必须在代码中将“My Guitar.jpg”替换为计算机中图像的有效位置。然后你应该看到一组像下面这样的图像。
+			
+			<pre style="text-align: center;"><img src="../Files/Brighness Increased.PNG"/>
+亮度增加</pre>
+
+			<pre style="text-align: center;"><img src="../Files/Brighness Decreased.PNG" />
+亮度减少</pre>
+			
+			<h3>解说</h3>
+			<div class='note'>
+			<strong>void Mat::convertTo( OutputArray m, int rtype, double alpha=1, double beta=0 ) const</strong>
+			此函数将每个像素值转换为目标数据类型，并根据以下公式更改值。<br>
+  			pixel_value_of_output_image(x, y) = pixel_value_of_input_image(x, y)* <strong>alpha</strong> + <strong>beta</strong>;
+			<ol>
+			<li><strong>m</strong> - 输出图像。如果需要，将重新分配此数据结构。</li>
+			<li><strong>rtype</strong> - 输出图像的类型。如果rtype为负值，则输出图像的类型将与输入图像相同。</li>
+			<li><strong>alpha</strong> - 在分配到输出图像之前，输入图像中的每个像素将乘以此数字。</li>
+			<li><strong>beta</strong> - 此值将添加到输入图像中的每个像素并分配给输出图像。</li>
+			
+			</div>
+			
+		</div>
+	</body>
+</html>	

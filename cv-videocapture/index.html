@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>从文件或相机播放视频</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">从文件或相机播放视频 cv::VideoCapture</div>
+		<div class="content">
+			
+			在本教程中，我将展示如何使用OpenCV从文件或摄像头/摄像头捕获和播放视频。虽然OpenCV没有针对视频处理进行优化，但它提供了一个简单的API来播放视频。在我们的OpenCV程序中，我们所要做的就是从视频文件或摄像机中提取帧（图像）并以连续循环的形式显示它。<br><br>
+
+			OpenCV的一个限制是它无法捕获视频中的任何声音。因此，必须使用另一个像FFmpeg这样的库来捕获视频文件或麦克风中的声音。<br><br>
+
+			<h2>播放视频文件</h2>
+
+			在本节中，我将展示如何播放视频文件。首先，应通过将有效位置传递给视频文件来构造VideoCapture对象。然后应逐帧读取VideoCapture对象。最后，这些帧应按顺序显示在窗口中。以下是执行上述任务的示例OpenCV代码。
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+	//从路径读取视频
+	VideoCapture cap("/My OpenCV Website/A Herd of Deer Running.mp4"); 
+	
+	//读取出错
+	if (!cap.isOpened())  
+	{
+		cout &lt;&lt; "Cannot open the video file" &lt;&lt; endl;
+		cin.get(); //等待键盘
+		return -1;
+	}
+	
+	//取消注释以下行以从视频的中间开始播放
+ 	//cap.set(CAP_PROP_POS_MSEC, 300); 
+	
+	//获取FPS
+	double fps = cap.get(CAP_PROP_FPS); 
+	cout &lt;&lt; "Frames per seconds : " &lt;&lt; fps &lt;&lt; endl;
+	
+	namedWindow("Video", WINDOW_NORMAL); //创建窗口
+	
+	while (true)
+	{
+		Mat frame;
+		bool status = cap.read(frame); //读取帧 
+
+		//如果视频结束，退出循环
+		if (!status) 
+		{
+			cout &lt;&lt; "End of the video" &lt;&lt; endl;
+			break;
+		}
+
+		//在窗口中显示帧
+		imshow("Video", frame);
+
+		//等待1毫秒或用户按下ESC
+		if (waitKey(1) == 27)
+		{
+			cout &lt;&lt; "Stopped the video" &lt;&lt; endl;
+			break;
+		}
+	}
+	return 0;
+}</pre><br><br>
+			将上面的简单代码段复制并粘贴到IDE中并运行它。请注意，须在代码中将"/My OpenCV Website/A Herd of Deer Running.mp4"替换为计算机中视频的有效位置。<br><br>
+			
+			<h3>解说</h3>
+
+			让我们逐行解释上面的代码。<br><br>
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt; 
+
+using namespace cv;
+using namespace std;</pre>
+			这些是我们程序中使用的包含文件和命名空间。如需更多说明，请参阅<a href="../load-and-display-image/index.html">载入并显示图像</a>。<br><br>
+			
+			<pre>VideoCapture cap("/My OpenCV Website/A Herd of Deer Running.mp4"); </pre>
+			这是VideoCapture类中可用的少数构造函数之一。此构造函数将打开视频文件并初始化VideoCapture对象，以便从指定文件中读取视频流。
+
+此类的析构函数将使用打开的视频文件取消分配任何关联的内存。因此，你无需在程序中显式取消分配内存。<br><br>
+			
+			<pre>if (!cap.isOpened())  
+{
+	cout &lt;&lt; "Cannot open the video file" &gt;&gt; endl;
+	cin.get(); //等待键盘
+	return -1;
+}</pre>
+			
+			如果之前对VideoCapture构造函数的调用成功，则cap.isOpened()函数将返回true。否则它将返回false。如果函数返回false，程序将向控制台输出一条消息，等待任何按键并退出程序，退出代码为-1。<br>
+
+在播放视频之前，必须检查VideoCapture对象是否已成功初始化以避免可能的崩溃。<br><br>
+			
+			<pre>//cap.set(CAP_PROP_POS_MSEC, 300); </pre>
+			如果你想在中间开始播放视频，可以取消注释此行。你也可以在while循环中调用这个函数。
+			
+			<div class="note">
+			<b>bool VideoCapture::set(int propId, double value)</b><br>
+			可以使用VideoCapture::set函数更改VideoCapture对象的某些属性。对于支持的属性，此函数将返回true。否则它将返回false。
+			<ol>
+				<li><strong>propID</strong> - 要更改的VideoCapture对象的属性。 可以改变的最常见属性是
+					<ul>
+					<li><strong>CAP_PROP_POS_MSEC</strong> - 视频文件的当前位置（以毫秒为单位）</li>
+					<li><strong>CAP_PROP_POS_FRAMES</strong> - 接下来要捕获的帧的相对位置（从0开始，例如 -  0,1,2,3 ......）</li>
+					</ul>
+				</li>
+				<li><strong>value</strong> - 指定属性的新值</li>
+			</ol>
+			</div>
+			
+			<br><br>
+			
+			<pre>double fps = cap.get(CAP_PROP_FPS); 
+cout &lt;&lt; "Frames per seconds : " &lt;&lt; fps &lt;&lt; endl;</pre>
+			
+			这两行将获得视频的帧速率并在控制台中打印。 你也可以在while循环中调用这个函数。
+			
+			<div class="note">
+			<strong>double VideoCapture::get(int propId) const</strong>	
+			此函数返回VideoCapture对象的指定属性的值。对于不受支持的属性，此函数将返回0。
+			<ol>
+			<li><strong>propId</strong> - 此参数指定要获取的VideoCapture对象的属性。 最常见的属性是
+				<ul>
+					<li><strong>CAP_PROP_POS_MSEC</strong> - 视频文件的当前位置（以毫秒为单位）</li>
+					<li><strong>CAP_PROP_POS_FRAMES</strong> - 接下来要捕获的帧的相对位置（从0开始，例如 -  0,1,2,3 ......）</li>
+					<li><strong>CAP_PROP_FRAME_WIDTH</strong> - 视频中帧的宽度</li>
+					<li><strong>CAP_PROP_FRAME_HEIGHT</strong> - 视频中帧的高度</li>
+					<li><strong>CAP_PROP_FPS</strong> - 视频的帧速率</li>
+					<li><strong>CAP_PROP_FOURCC</strong> - 编解码器的4字符代码</li>
+					<li><strong>CAP_PROP_FRAME_COUNT</strong> - 视频文件中的总帧数</li>
+				</ul>
+			</li>
+			</ol>
+			</div>
+			
+			<h3>摘要</h3>
+
+			在上一节中，你学到了：
+			<ul>
+				<li>如何从文件加载视频</li>
+				<li>如何逐个读取视频的每个帧并将其显示在while循环的窗口中</li>
+				<li>如何在视频结尾处打破while循环</li>
+				<li>如果在视频结束前按下特定键，如何中断while循环</li>
+			</ul>
+		
+			<br><br>
+			<h2>从摄像头获取视频</h2>
+
+			在本节中，你将学习如何从连接到个人计算机的摄像头获取视频。<br>
+
+			该程序与上述程序的主要区别在于使用VideoCapture构造函数。在此程序中，你只需将摄像机的索引提供给VideoCapture对象的构造函数而不是视频文件名。以下是OpenCV示例代码。
+			
+			<pre>#include &lt;opencv2/opencv.hpp>
+#include &lt;iostream>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+	//打开默认摄像头
+	VideoCapture cap(0);
+
+	//如果不成功退出程序
+	if (！cap.isOpened())  
+	{
+		cout &lt;&lt; "Cannot open the video camera" &lt;&lt; endl;
+	cin.get(); //等待键盘
+	return -1;
+	} 
+
+	double dWidth = cap.get(CAP_PROP_FRAME_WIDTH); //获取视频帧宽度
+	double dHeight = cap.get(CAP_PROP_FRAME_HEIGHT); //获取视频帧高度
+
+	cout &lt;&lt; "Resolution of the video : " &lt;&lt; dWidth &lt;&lt; " x " &lt;&lt; dHeight &lt;&lt; endl;
+ 
+	namedWindow("Camera"); //创建窗口
+ 
+	while (true)
+	{
+		Mat frame;
+		bool status = cap.read(frame); //读取图帧
+
+		//如果失败跳出循环
+		if (!status) 
+			break;
+
+		//显示图帧
+		imshow("Camera", frame);
+		
+		//等待1毫秒或用户按下ESC键
+		if (waitKey(1) == 27)
+		{
+			cout &lt;&lt; "Stopped the video" &lt;&lt; endl;
+			break;
+		}
+	}
+
+return 0;
+
+}</pre>
+			将上面的简单代码段复制并粘贴到IDE中并运行它。 然后你应该在打开的窗口中看到相机输出。<br><br>
+			
+			<h3>解说</h3>
+			<pre>VideoCapture cap(0);</pre>
+			
+			此行将使用默认摄像头和默认后端初始化VideoCapture对象。
+			<br>
+			
+			<pre class="note"><strong>VideoCapture::VideoCapture(int index) </strong>
+			
+这是VideoCapture类中可用的少数构造函数之一。此构造函数初始化并打开由参数索引指定的摄像头。
+您可以为参数索引传递0以使用连接到计算机的默认摄像头。如果您的计算机连接到多个摄像机，则可以使用正整数作为索引。
+此类的析构函数将使用此对象取消分配任何关联的内存。因此，您无需在程序中显式取消分配内存。</pre><br><br>
+			
+			<pre>	double dWidth = cap.get(CAP_PROP_FRAME_WIDTH); //获取视频帧宽度
+	double dHeight = cap.get(CAP_PROP_FRAME_HEIGHT); //获取视频帧高度
+
+	cout &lt;&lt; "Resolution of the video : " &lt;&lt; dWidth &lt;&lt; " x " &lt;&lt; dHeight &lt;&lt; endl;</pre>
+			第一行将获得相机输出的帧的宽度（以像素为单位）。下一行将获得摄像机输出帧的高度。然后打印相机输出的分辨率（宽x高）。<br><br>
+			所有其他代码行与第一个播放视频文件的程序相同。
+			
+		</div> 
+	</body>
+</html> 

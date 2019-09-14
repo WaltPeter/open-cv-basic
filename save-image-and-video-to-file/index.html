@@ -1,0 +1,348 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>从文件或相机播放视频</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">从文件或相机播放视频 cv::VideoCapture</div>
+		<div class="content">
+			
+			<h1>将图像和视频保存到文件</h1>
+			在许多现实世界的计算机视觉应用中，需要保留图像和视频以供将来参考。最常见的持久方法是将图像或视频保存到文件中。因此，本教程准备解释如何使用OpenCV C++将图像和视频保存到文件中。<br>
+
+			要更好地理解本教程，请先参考“<a href="../load-and-display-image/index.html">加载和显示图像</a>”和“<a href="../cv-videocapture/index.html">从文件或相机播放视频</a>”。<br><br>
+
+
+			<h2>将图像保存到文件</h2>
+
+			在本节中，您可以了解如何保存从文件加载的图像。以同样的方式，您可以保存从相机或任何其他方法拍摄的图像。
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt; 
+#include &lt;iostream&gt; 
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv)
+{
+	//读取图像
+	Mat image = imread("/image.jpg");
+
+	//失败就退出
+	if (image.empty())
+	{
+		cout &lt;&lt; "Could not open or find the image" &lt;&lt; endl;
+		cin.get(); //wait for any key press
+		return -1;
+	}
+
+	/* 你可以在这里进行图像的修改：
+	1.更改图像的亮度/对比度
+	2.平滑/模糊图像
+	3.裁剪图像
+	4.旋转图像
+	5.在图像上绘制形状
+	*/
+	
+	bool isSuccess = imwrite("newImage.jpg", image); //以JPEG格式储存照片 
+	//bool isSuccess = imwrite("newImage.png", image); //以PNG格式储存照片 
+	if (!isSuccess)
+	{
+		cout &lt;&lt; "Failed to save the image" &lt;&lt; endl;
+		cin.get(); //等待键盘
+		return -1;
+	}
+
+	cout &lt;&lt; "Image is succusfully saved to a file" &lt;&lt; endl;
+ 
+ 	namedWindow("img"); //新创建窗口
+	imshow("img", image); //显示图像
+
+	waitKey(0); //等待键盘
+
+	destroyWindow(windowName); //毁灭窗口
+	return 0;
+}</pre>
+			
+			将上面的代码段复制并粘贴到IDE中并运行它。请注意，你必须在代码中将“image.jpg”替换为计算机中图像的有效位置。然后您的图像应保存在指定的位置。<br><br>
+			
+			<h3>解说</h3>
+
+			让我们逐行浏览上面的代码。<br><br>
+			<pre>	Mat image = imread("/image.jpg");
+
+	//失败就退出
+	if (image.empty())
+	{
+		cout &lt;&lt; "Could not open or find the image" &lt;&lt; endl;
+		cin.get(); //wait for any key press
+		return -1;
+	}</pre>
+			这些代码行从指定的文件中读取图像。 如果无法加载图像，程序将退出。
+
+			有关上述代码段中每个OpenCV函数的更多详细信息，请参阅“<a href="../load-and-display-image/index.html">载入并显示图像</a>”。
+			
+			<br><br>
+			
+			<pre>	bool isSuccess = imwrite("newImage.jpg", image); //以JPEG格式储存照片 
+	//bool isSuccess = imwrite("newImage.png", image); //以PNG格式储存照片 
+	if (!isSuccess)
+	{
+		cout &lt;&lt; "Failed to save the image" &lt;&lt; endl;
+		cin.get(); //等待键盘
+		return -1;
+	}
+
+	cout &lt;&lt; "Image is succusfully saved to a file" &lt;&lt; endl;</pre>
+			上面的代码段将给定的图像写入指定的文件。 如果将图像写入文件失败，程序将退出。
+			<div class="note"><strong>bool imwrite( const String& filename, InputArray img, const std::vector& params = std::vector()) </strong><br>
+			此函数将给定的img对象写入指定的文件。成功时，此函数将返回true，否则返回false。<br>
+			<ol>
+				<li><strong>filename</strong> - 输出图像的文件名。请注意，文件名的扩展名将用于确定图像格式。（例如 - 如果文件名是MyImage.jpg，则会写入JPEG图像。如果文件名是MyImage.png，则会写入PNG图像。）始终支持jpeg，jpg，bmp，png，tiff和tif扩展名。支持其他映像文件类型，具体取决于您的平台和已安装的编解码器。</li>
+				<li><strong>img</strong> - 要保存的图像对象。请注意，此图像对象应具有以下属性。
+					<ul>
+						<li>图像对象的位深度应为8位有符号或16位无符号。</li>
+						<li>图像的通道数应为1或3.对于3通道图像对象，应存在BGR通道顺序。</li>
+					</ul>
+				如果图像对象的位深度或通道顺序与上述规范不同，则可以使用Mat::convertTo和cv::cvtColor函数转换图像。
+				</li>
+				<li><strong>params</strong> - 这是一个可选参数。</li>
+			</ol>
+			</div>
+			
+			<pre>	namedWindow("img"); //新创建窗口
+	imshow("img", image); //显示图像
+
+	waitKey(0); //等待键盘
+
+	destroyWindow(windowName); //毁灭窗口</pre>
+			这些代码行创建一个新窗口并在其中显示图像。 程序将在窗口中显示图像，直到按下任何键。 按下一个键后，窗口将被销毁。<br>
+
+			有关上述代码段中每个OpenCV函数的更多详细信息，请参阅“<a href="../load-and-display-image/index.html">载入并显示图像</a>”。
+			
+			<br><br>
+			
+			<h3>摘要</h3>
+
+			在上一节中，你已经学会了如何：
+			<ol>
+			<li>从文件加载图像。</li>
+			<li>可以根据需要修改加载的图像。但是在本教程中没有解释它，因为它已在其他教程中解释过。（例如 - 过滤图像，旋转图像和视频等）</li>
+			<li>将图像保存到文件</li>
+			<li>在窗口中显示图像</li>
+			</ol>
+			
+			<br><br>
+			
+			<h2>将视频保存到文件</h2>
+
+			在本节中，你可以了解如何将摄像头捕获的视频保存到文件中。同样，你可以在进行任何修改后保存视频文件。
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt; 
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+    //打开默认摄像机
+    VideoCapture cap(0);
+
+    //不成功就退出程序
+    if (!cap.isOpened())
+    {
+        cout &lt;&lt; "Cannot open the video camera" &lt;&lt; endl;
+        cin.get(); //等待键盘
+        return -1;
+    }
+
+    int frame_width = static_cast&lt;int&gt; (cap.get(CAP_PROP_FRAME_WIDTH)); //获取视频帧宽度
+    int frame_height = static_cast&lt;int&gt; (cap.get(CAP_PROP_FRAME_HEIGHT)); //获取视频帧高度
+    
+    Size frame_size(frame_width, frame_height);
+    int frames_per_second = 10;
+
+    //创建并初始化VideoWriter对象
+    VideoWriter myWriter("MyVideo.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true); 
+    
+    //如果不成功就退出程序
+    if (!myWriter.isOpened()) 
+    {
+        cout &lt;&lt; "Cannot save the video to a file" &lt;&lt; endl;
+        cin.get(); //等待键盘
+        return -1;
+    }
+	
+    namedWindow("Cam"); //创建窗口
+
+    while (true)
+    {
+        Mat frame;
+        bool isSuccess = cap.read(frame); //读取图帧
+
+        //如果失败跳出循环
+        if (isSuccess == false)
+        {
+            cout &lt;&lt; "Video camera is disconnected" &lt;&lt; endl;
+            cin.get(); //等待键盘
+            break;
+        }
+
+        /* 你可以在这里进行图像的修改：
+	1.更改图像的亮度/对比度
+	2.平滑/模糊图像
+	3.裁剪图像
+	4.旋转图像
+	5.在图像上绘制形状
+	*/
+
+        //写入文件
+        myWriter.write(frame); 
+
+        //显示图帧
+        imshow("Cam", frame);
+
+        //等待1毫秒或用户按下ESC
+        if (waitKey(1) == 27)
+        {
+            cout &lt;&lt; "Stopped the video" &lt;&lt; endl;
+            break;
+        }
+    }
+
+    //刷新并关闭视频文件
+    myWriter.release();
+    
+    return 0;
+}</pre>
+			
+			将上面的代码段复制并粘贴到IDE中并运行它。然后，你应该在创建的窗口中看到网络摄像头的输出。按下“Esc”键后，创建的窗口将被销毁，摄像头的视频输出将保存在给定位置。
+			
+			
+			<h3>说明</h3>
+
+			让我们逐行浏览上面的代码。
+			
+			<pre>    VideoCapture cap(0);
+
+    //不成功就退出程序
+    if (!cap.isOpened())
+    {
+        cout &lt;&lt; "Cannot open the video camera" &lt;&lt; endl;
+        cin.get(); //等待键盘
+        return -1;
+    }</pre>
+			
+			上面的代码段会打开连接到您计算机的默认摄像头。 如果打开相机失败，程序将退出。 有关上述代码段中每个OpenCV功能的更多详细信息，请参阅“<a href="../cv-videocapture/index.html">从文件或相机播放视频</a>”。
+			
+			
+			<pre>    int frame_width = static_cast&lt;int&gt; (cap.get(CAP_PROP_FRAME_WIDTH)); //获取视频帧宽度
+    int frame_height = static_cast&lt;int&gt; (cap.get(CAP_PROP_FRAME_HEIGHT)); //获取视频帧高度
+    
+    Size frame_size(frame_width, frame_height);
+    int frames_per_second = 10;
+
+    //创建并初始化VideoWriter对象
+    VideoWriter myWriter("MyVideo.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true); 
+    
+    //如果不成功就退出程序
+    if (!myWriter.isOpened()) 
+    {
+        cout &lt;&lt; "Cannot save the video to a file" &lt;&lt; endl;
+        cin.get(); //等待键盘
+        return -1;
+    }</pre>
+			
+			此代码段获取摄像头视频帧的宽度和高度。使用获得的信息，构造并初始化VideoWriter对象。如果初始化失败，程序将退出。
+			
+			<div class="note"><strong>VideoWriter(const String& filename, int fourcc, double fps, Size frameSize, bool isColor = true)</strong><br>
+			这是VideoWriter对象的可用重载构造函数之一。它构造并初始化VideoWriter对象，以便将视频帧写入给定文件。
+			<ol>
+			<li><strong>filename</strong> - 要写入视频帧的文件的名称。</li>
+			<li><strong>fourcc</strong> - 用于压缩视频的编解码器的4密码 - 4字符代码。完整的代码列表可在此页面中找到。但是，此页面中列出的大多数编解码器可能无法在您的计算机中运行。这些是一些可能适合您的流行编解码器。
+				<ul>
+					<li>VideoWriter::fourcc（'P'，'I'，'M'，'1'）--&gt; MPEG-1</li>
+					<li>VideoWriter::fourcc（'M'，'J'，'P'，'G'）--&gt; Motion JPEG</li>
+					<li>VideoWriter::fourcc（'M'，'P'，'4'，'2'）--&gt; Microsoft的MPEG-4变体</li>
+				</ul>
+			</li>
+			</ol>
+				<li><strong>fps</strong> - 写入视频流的每秒帧数。</li>
+				<li><strong>frameSize</strong> - 写入此视频流的视频帧的大小</li>
+				<li><strong>isColor</strong> - 始终将true传递给此参数</li>
+			</div>
+			
+			
+			<pre>    while (true)
+    {
+        Mat frame;
+        bool isSuccess = cap.read(frame); //读取图帧
+
+        //如果失败跳出循环
+        if (isSuccess == false)
+        {
+            cout &lt;&lt; "Video camera is disconnected" &lt;&lt; endl;
+            cin.get(); //等待键盘
+            break;
+        }
+
+        /* 你可以在这里进行图像的修改：
+	1.更改图像的亮度/对比度
+	2.平滑/模糊图像
+	3.裁剪图像
+	4.旋转图像
+	5.在图像上绘制形状
+	*/
+
+        //写入文件
+        myWriter.write(frame); 
+
+        //显示图帧
+        imshow("Cam", frame);
+
+        //等待1毫秒或用户按下ESC
+        if (waitKey(1) == 27)
+        {
+            cout &lt;&lt; "Stopped the video" &lt;&lt; endl;
+            break;
+        }
+    }</pre>
+			
+		在上述while循环的每次迭代中，程序执行以下任务。
+		<ul>
+		<li>从相机中读取一帧。</li>
+		<li>将帧写入文件。</li>
+		<li>在窗口中显示框架。</li>
+		</ul>
+		如果按下Esc键或程序无法从相机读取帧，则while循环将中断。
+			
+		<pre class="note"><strong>void write(const Mat& image)</strong>
+将帧写入文件。框架的大小应与您在VideoWriter对象初始化期间指定的大小相同。</pre><br><br>
+			
+		<pre>myWriter.release();</pre>
+			
+		此功能可刷新和关闭视频文件。此函数也在析构函数中执行VideoWriter对象。<br><br>
+
+
+		<h3>摘要</h3>
+
+		在本节中，您已经学会了如何操作<br>
+		<ul>
+			<li>打开照相机</li>
+			<li>初始化VideoWriter对象</li>
+			<li>从相机读取帧</li>
+			<li>将帧写入文件</li>
+			<li>刷新并关闭视频文件</li>
+		</ul>
+			
+		</div>
+	</body>
+</html>
