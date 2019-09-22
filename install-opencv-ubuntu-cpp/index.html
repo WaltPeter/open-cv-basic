@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>【小白用】在Ubuntu 16.04上安装OpenCV 3.4.7</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">【小白用】在Ubuntu 16.04上安装OpenCV 3.4.7</div>
+		<div class="content">
+			
+			<h1>【小白用】在Ubuntu 16.04上安装OpenCV 3.4.7</h1>
+			<pre>1. 更改下载源，我使用的是清华源。 
+2. 打开终端 sudo apt-get update 
+3. sudo apt-get install build-essential 
+4. sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+5. sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+6. 登入opencv.org/releases/，下载OpenCV 3.4.7
+7. 下载后把压缩包移到home，然后解压。
+8. 在home内右键打开终端。
+9. mkdir build 创建文件夹
+10. cd build 进入文件夹
+11. cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+12. make -j4 把“4”换成你的内核数
+13. sudo make install 
+14. sudo gedit /etc/ld.so.conf.d/opencv.conf 
+15. 执行此命令后打开的可能是一个空白的文件，不用管，只需要在文件末尾添加: /usr/local/lib
+16. sudo ldconfig 使得刚才的配置路径生效
+17. sudo gedit /etc/bash.bashrc
+18. 在末尾加上：
+PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig  
+export PKG_CONFIG_PATH
+19. source /etc/bash.bashrc 使得配置生效
+20. sudo updatedb 更新
+21. 测试OpenCV安装： 
+22. 创建新文件夹，我命名为OpenCV-Test
+23. 进入文件夹后右键打开终端
+24. touch main.cpp 创建名为main.cpp的文件
+25. 右键main.cpp，使用IDE打开
+26. 复制代码： 
+#include &lt;opencv2/opencv.hpp&gt; 
+#include &lt;iostream&gt; 
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv)
+{
+ //读取照片
+ Mat image = imread("OpenCV_Logo.png");
+
+ //检测失误
+ if (image.empty()) 
+ {
+  cout &lt;&lt; "Could not open or find the image" &lt;&lt; endl;
+  cin.get(); //等待键盘输入
+  return -1;
+ }
+
+ String windowName = "OpenCV Test";	   //窗口名称
+ namedWindow(windowName); 		   //创建新窗口
+ imshow(windowName, image);		   //使用新窗口显示照片
+ waitKey(0); 				   //等待键盘输入
+ destroyWindow(windowName);		   //关闭所有窗口
+ return 0;
+}
+27. 网上随意下载张图片，放入与main.cpp相同的文件夹中。
+28. 更改图片路径。 
+29. g++ -o main main.cpp `pkg-config --libs --cflags opencv` 编译
+30. ./main 运行程序
+31. 没有报错就是安装成功了
+
+			</pre>
+			</div>
+	</body> 
+</html>

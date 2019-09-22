@@ -27,7 +27,12 @@
 	<pre class="note"><code>在sudo apt-get install build-essential前请跑一下sudo apt-get update更新apt-get内容。
 如果sudo apt-get install下载速度较慢，建议到 设置 -> 系统更新 -> 下载自 更换服务器至中国。我使用的是tuna.tsinghua.edu.cn</code></pre>
 	
-	<h2>获取OpenCV源代码</h2><p>您可以使用最新稳定的OpenCV版本，或者从<a href="https://github.com/opencv/opencv.git">Git存储库</a>获取最新的快照。</p><h3>获取最新稳定的OpenCV版本</h3><ul><li>转到我们的<a href="http://opencv.org/releases.html">下载页面</a>。</li><li>下载源存档并解压缩。</li></ul><h3>从Git Repository获得最新的OpenCV</h3><p>启动Git客户端并克隆<a href="http://github.com/opencv/opencv">OpenCV存储库</a>。如果您需要<a href="http://github.com/opencv/opencv_contrib">OpenCV contrib存储库中的</a>模块，那么也可以克隆它。</p><p>例如：</p><pre style="max-width: 100%;"><code class="javascript hljs">cd〜/ <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">my_working_directory</span>&gt;</span>
+	<h2>获取OpenCV源代码</h2><p>您可以使用最新稳定的OpenCV版本，或者从<a href="https://github.com/opencv/opencv.git">Git存储库</a>获取最新的快照。</p><h3>获取最新稳定的OpenCV版本</h3><ul><li>转到我们的
+	<a href="http://opencv.org/releases.html">下载页面</a>。
+	
+	建议直接点击下载<a href="https://codeload.github.com/opencv/opencv/zip/3.4.7">3.4.7版本</a>
+	
+	</li><li>下载源存档并解压缩。</li></ul><h3>从Git Repository获得最新的OpenCV</h3><p>启动Git客户端并克隆<a href="http://github.com/opencv/opencv">OpenCV存储库</a>。如果您需要<a href="http://github.com/opencv/opencv_contrib">OpenCV contrib存储库中的</a>模块，那么也可以克隆它。</p><p>例如：</p><pre style="max-width: 100%;"><code class="javascript hljs">cd〜/ <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">my_working_directory</span>&gt;</span>
 git clone https://github.com/opencv/opencv.git
 git clone https://github.com/opencv/opencv_contrib.git</span></code></pre><h2>使用CMake从源代码构建OpenCV</h2><p>1、创建一个临时目录，我们将其指定为&lt;cmake_build_dir&gt;，您要将生成的Makefile，项目文件以及目标文件和输出二进制文件放在那里。</p><p>例如：</p><pre style="max-width: 100%;"><code class="javascript hljs">cd ~<span class="hljs-regexp">/opencv
 mkdir build

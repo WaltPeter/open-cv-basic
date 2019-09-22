@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>过滤图像</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">Histogram直方图均衡</div>
+		<div class="content">
+			
+			<h1>过滤图像</h1>
+			图像滤波是邻域操作，其中通过将特定算法应用于相应输入像素附近的像素值来确定输出图像中的任何给定像素的值。该技术通常用于平滑，锐化和检测图像和视频的边缘。<br><br>
+			
+			让我们来讨论图像过滤技术，内核和卷积时使用的一些术语的含义。<br><br>
+			
+			<h2>核心(Kernel)</h2>
+
+			核心是具有奇数高度和奇数宽度的矩阵。它也被称为卷积矩阵(Convolution Matrix)、掩模(Mask)或滤波器(Filter)。核心根据其值分布命名。核心用于在图像过滤操作中定义像素的邻域。一些流行的内核是标准化盒式过滤器(Normalized box filter)、高斯内核(Gaussian kernel)、拉普拉斯核心(Laplacian kernel)、边缘检测核心(edge detecting kernels)等。核心可以用不同的大小来定义。但是大核心导致大的处理时间。
+
+			这是一个3x3标准化盒式过滤器。该内核用于均匀平滑（模糊）。
+			
+			<pre style="text-align: center;"><img src="../Files/3x3 Normalized box filter.png" /></pre><br><br>
+			
+			这是一个5 x 5标准化盒式过滤器。 该内核也用于均匀平滑。 同样，您可以创建一个规格化的盒式过滤器，其中任何大小都可用于均匀平滑。
+			<pre style="text-align: center;"><img src="../Files/Homogeneous Kernel.png" /></pre><br><br>
+			
+			这是用于高斯平滑（模糊）的3×3高斯核。
+			<pre style="text-align: center;"><img src="../Files/3x3 Gaussian Kernel.png" /></pre><br><br>
+			
+			这是用于高斯平滑（模糊）的5×5高斯核。以同样的方式，你可以创建任何大小的高斯内核。应使用二维高斯函数计算内核的值分布。
+			<pre style="text-align: center;"><img src="../Files/Gaussian Function.PNG" /></pre>
+			x，y是原点位于中心的内核坐标。（即，在核心的中心元素处x=0且y=0。）σ是高斯分布的标准偏差。对于较大的标准偏差，需要较大的内核以便精确地执行高斯平滑。以下5 x 5高斯核的标准偏差为1。
+			<pre style="text-align: center;"><img src="../Files/Gaussian Kernel.png" /></pre>
+			
+			<h2>卷积</h2>
+
+			卷积是通过在整个图像上滑动内核并基于内核的值和原始图像的重叠像素的值计算每个像素的新值来对图像执行的数学运算。
+			<pre style="text-align: center;"><img src="../Files/Convolution.png" /></pre>
+			
+			C<sub>22</sub> =（K<sub>11</sub>×A<sub>11</sub> + K<sub>12</sub>×A<sub>12</sub> + K<sub>13</sub>×A<sub>13</sub>）+（K<sub>21</sub>×A<sub>21</sub> + K<sub>22</sub>×A<sub>22</sub> + K<sub>23</sub>×A<sub>23</sub>）+（K<sub>31</sub>×A<sub>31</sub> + K<sub>32</sub>×A<sub>32</sub> + K<sub>33</sub>×A</sub>33</sub>）<br>
+			C<sub>23</sub> =（K<sub>11</sub>×A<sub>12</sub> + K<sub>12</sub>×A<sub>13</sub> + K<sub>13</sub>×A<sub>14</sub>）+（K<sub>21</sub>×A<sub>22</sub> + K<sub>22</sub>×A<sub>23</sub> + K<sub>23</sub>×A<sub>24</sub>）+（K<sub>31</sub>×A<sub>32</sub> + K<sub>32</sub>×A<sub>33</sub> + K<sub>33</sub>×A</sub>34</sub>）<br>
+			C<sub>24</sub> =（K<sub>11</sub>×A<sub>13</sub> + K<sub>12</sub>×A<sub>14</sub> + K<sub>13</sub>×A<sub>15</sub>）+（K<sub>21</sub>×A<sub>23</sub> + K<sub>22</sub>×A<sub>24</sub> + K<sub>23</sub>×A<sub>25</sub>）+（K<sub>31</sub>×A<sub>33</sub> + K<sub>32</sub>×A<sub>34</sub> + K<sub>33</sub>×A</sub>35</sub>）<br>
+
+			C<sub>32</sub> =（K<sub>11</sub>×A<sub>21</sub> + K<sub>12</sub>×A<sub>22</sub> + K<sub>13</sub>×A<sub>23</sub>）+（K<sub>21</sub>×A<sub>31</sub> + K<sub>22</sub>×A<sub>32</sub> + K<sub>23</sub>×A<sub>33</sub>）+（K<sub>31</sub>×A<sub>41</sub> + K<sub>32</sub>×A<sub>42</sub> + K<sub>33</sub>×A</sub>43</sub>）<br>
+			C<sub>33</sub> =（K<sub>11</sub>×A<sub>22</sub> + K<sub>12</sub>×A<sub>23</sub> + K<sub>13</sub>×A<sub>24</sub>）+（K<sub>21</sub>×A<sub>32</sub> + K<sub>22</sub>×A<sub>33</sub> + K<sub>23</sub>×A<sub>34</sub>）+（K<sub>31</sub>×A<sub>42</sub> + K<sub>32</sub>×A<sub>43</sub> + K<sub>33</sub>×A</sub>44</sub>）<br><br>
+
+			以相同的方式C<sub>34</sub>，可以在卷积图像中计算。但是，卷积图像边界中的其他值（例如C<sub>11</sub>，C<sub>12</sub>等）不能以相同的方式计算，因为内核与边界处的原始图像部分重叠。因此，应该计算非重叠的不存在的像素值，以便确定卷积图像的边界处的像素值。有各种技术来处理这个边界值，但我不打算在本教程中讨论它。<br>
+			<ul><li>平滑/模糊图像
+
+			当通过相机或其他方法获取图像时，图像可能被随机点和噪声破坏。平滑/模糊是消除这种缺陷并改善图像的图像处理技术之一。甚至可以对视频的每个帧应用图像平滑技术以消除不完美并改善视频。
+				<ul>
+				<li>同质模糊</li>
+				<li>高斯模糊</li>
+				<li>中位平滑</li>
+				<li>双边平滑</li>
+				</ul>
+			</li>
+
+ 
+			<li><a href="">侵蚀图像和视频</a></li>
+			<li><a href="">扩张图像和视频</a></li>
+			<li><a href="">反转图像和视频</a></li>
+			</ul>
+			
+        </div>
+	</body>
+</html>

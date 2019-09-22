@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>改变图像亮度</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">改变图像亮度</div>
+		<div class="content">
+			
+			<h1>改变对比度</h1>
+			改变图像的对比度也是常用操作。在此操作中，图像中每个像素的值应乘以不等于1的正常数。要更改视频的对比度，应对视频中的每个帧执行相同的操作。<br>
+			为了增加图像的对比度，图像中的每个像素应该乘以大于1的正常数。<br>			
+			<pre class="white">new_image (i, j) = image(i, j) * c                    c &gt; 1</pre><br>
+			
+			为了降低图像的对比度，图像中的每个像素应乘以小于1的正常数。<br>
+			
+			<pre class="white">new_image (i, j) = image(i, j) * c                0 &lt; c &lt; 1</pre><br>
+			有更多先进的方法来增强图像的对比度，例如直方图均衡。它增强了图像的对比度，使得强度分布在可用空间中均衡地平衡。我们将在下一课中讨论直方图均衡。
+			
+			<h2>使用OpenCV更改图像的对比度</h2>
+
+			现在，我将向您展示如何使用OpenCV C++示例增加和减少图像的对比度。
+
+			建议首先浏览“<a href="../load-and-display-image/index.html">载入并显示图像</a>”，以便更好地理解以下示例。
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv)
+{
+    //读取图像
+    Mat image = imread("Christmas.jpg");
+
+    //检测失败
+    if (image.empty())
+    {
+        cout << "Could not open or find the image" << endl;
+        cin.get(); //等待键盘
+        return -1;
+    }
+
+    Mat imageContrastHigh2;
+    image.convertTo(imageContrastHigh2, -1, 2, 0); //对比度2
+
+    Mat imageContrastHigh4;
+    image.convertTo(imageContrastHigh4, -1, 4, 0); //对比度4
+
+    Mat imageContrastLow0_5;
+    image.convertTo(imageContrastLow0_5, -1, 0.5, 0); //对比度0.5
+
+    Mat imageContrastLow0_25;
+    image.convertTo(imageContrastLow0_25, -1, 0.25, 0); //对比度0.25
+
+    //创建窗口
+    namedWindow("Original", WINDOW_NORMAL);
+    namedWindow("Contrast2", WINDOW_NORMAL);
+    namedWindow("Contrast4", WINDOW_NORMAL);
+    namedWindow("Contrast0.5", WINDOW_NORMAL);
+    namedWindow("Contrast0.25", WINDOW_NORMAL);
+
+    //显示图像
+    imshow("Original", image);
+    imshow("Contrast2", imageContrastHigh2);
+    imshow("Contrast4", imageContrastHigh4);
+    imshow("Contrast0.5", imageContrastLow0_5);
+    imshow("Contrast0.25", imageContrastLow0_25);
+
+    waitKey(0); //等待键盘
+
+    destroyAllWindows(); //毁灭窗口 们
+
+    return 0;
+}</pre>
+			
+			将上面的代码段复制并粘贴到IDE中并运行它。请注意必须将代码中的“Christmas.jpg”替换为计算机中图像的有效位置。然后你应该看到一组像下面这样的图像。
+			
+			<pre style="text-align: center;"><img src="../Files/Contrast Increased.PNG"/>
+增加对比度</pre>
+			<pre style="text-align: center;"><img src="../Files/Contrast Decreased.PNG"/>
+减少对比度</pre>
+			
+        </div>
+	</body>
+</html>
