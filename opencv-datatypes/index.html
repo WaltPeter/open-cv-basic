@@ -1,0 +1,406 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>OpenCV数据类型（上）</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">OpenCV数据类型（上）</div>
+		<div class="content">
+			
+			<h1>OpenCV数据类型</h1>
+
+			OpenCV有很多数据类型，它们都基于一些重要视觉概念的抽象二设计，以此提供相对简单、直观的表示和处理。同时，许多算法开发者需要一些相对有效的，可以推广或扩展以满足他们特定需求的基本数据结构。OpenCV库使用基础数据类型模板构建并特化这些模板，从而使每个人能更简单地执行操作并满足自己的需求。<br><br>
+
+			从组织结构的角度来看，OpenCV的基础数据类型主要分成三类。第一类是直接从C++原语中继承的基础数据类型（如int和float等）。这些类型包括简单的数组和矩阵，同时也代表一些简单的几何概念 ，比如点、矩形、大小等；第二类是辅助对象（range objects）以及抽象的终止条件类等。第三类可以称为大型数组类型。这些对象原本目的是涵盖数组或一些其他的原语、程序集或更常见的基础数据类型。这一类的典型代表的是cv::Mat类，该类用来代表任意维度的包含任意基础元素的数组。存储图片对象是cv::Mat类的特殊用途，但不同于早期OpenCV版本（比如，2.1以下版本），这样的专门应用不需要不同的类或类型。除了cv::Mat，这个类别还涵盖其相关的类型，比如稀疏矩阵cv::SparseMat，顾名思义，它更适用于直方图这样的稀疏数据。<br><br>
+
+			除了这些类型，OpenCV还使用了很多标准模板库(STL)。OpenCV相当依赖vector类，很多OpenCV库函数再参数列表中有vector模板类。<br><br>
+
+
+			<h2>基础类型概述</h2>
+
+			最简单的基本数据类型是模板类cv::Vec&lt;&gt;，它是一个原语的容器类，也是我们所称的固定向量类。为何不直接使用STL的类呢？它们之间主要的不同点在于，固定向量类用于在编译时已经知道维度的小型向量。这允许代码以更高的效率处理与此类向量相关的操作。在实际使用中，“小”意味着，如果用来处理多个元素，说明你可能错误使用了这个类。（实际上，在2.2版本中，元素的数量在任何实例中都不能超过9）<br><br>
+
+			即使cv::Vec&lt;&gt;是模板，但大部分的时间你都不会倾向于使用它的这个形式。相对的，有很多它的别名（typedef）以便用于通用的实例。它们有着cv::Vec2i，cv::Vec3i和cv::Vec4d这样的名称（分别对应着cv::Vec{2,3,4,6}{b,w,s,i,f,d}形式的声明，对于2个到6个维度的6种数据类型的任何组合都是有效的。（这里提到的6种数据类型在库里一般缩写位b = unsigned char，w = unsigned short， s = short，i = int，f = float，d = double）<br><br>
+
+			除了固定向量类，库中还有固定矩阵类。它们与模板类cv::Matx&lt;&gt;相关。与固定向量类一样，cv::Matx&lt;&gt;并不是用于大型数组的，相反，它是设计用于一些特定的小型矩阵操作。在计算机视觉中，很多的2x2或3x3的矩阵，同时有少量的4x4矩阵用于各种变换。cv::Matx&lt;&gt;设计用于容纳这些对象。与cv::Vec&lt;&gt;类似，cv::Matx&lt;&gt;一般都会以别名cv::Matx{1,2,3,4,6}{1,2,3,4,6}{f,d}的形式应用。关于固定矩阵类的维度在编译之前必须已知。当然，正是这种知识使得固定矩阵类的运算效率高，同时消除了许多动态内存分配操作。<br><br>
+
+			与固定向量类关系非常类似的是cv::Point类，它是两到三个原语类型的容器。Point类不是从固定向量类继承下来的，而是由自己的模板派生的，但同时它们也可以从固定向量类转换得到。Point类与固定向量类之间最大的不同就是它们的成员是通过名称变量访问的(mypoint.x，mypoint.y等)而不是通过下标访问(myvec[0], myvec[1]等)。和cv::Vec&lt;&gt;一样，Point类是通过别名调用作为一个正确模板的实例。这些别名可以是cv::Point2i，cv::Point2f，cv::Point2d或cv::Point3i，cv::Point3f，cv::Point3d。 <br><br>
+
+			cv::Scalar本质上是一个四维Point类。与Point类相似，cv::Scalar实际上与一个可以产生任意四元素向量的模板相关，但cv::Scalar一般是双精度四元素向量别名。不像Point类，cv::Scalar对象的元素是通过整数下标来访问的，这与cv::Vec&lt;&gt;相同。这是因为cv::Scalar直接继承cv::Vec&lt;&gt;实例（更准确地说，继承自cv::Vect&lt;double, 4&gt;）<br><br>
+
+			我们下一个要讲的是cv::Size和cv::Rect。与Point类相似，这两个类继承自自己的模板。它们的主要区别在于cv::Size有width和height这两个属性而不是x和y，而cv::Rect包含了这四个。cv::Size类实际上是cv::Size2i的别名，在宽度和高度为整数的情况下，它本身就是一个更通用的模板的别名。用于浮点类型的宽度和高度，使用别名cv::Size2f。类似的，cv::Rect是一个整数类型的矩形的别名。还有一个类用来表示非轴对称的矩形，它便是cv::RotateRect，它含有一个cv::Point2f类型的中心点，一个cv::Size2f类型的size，还有一个额外的浮点类型的角度。<br><br>
+			
+			
+			<h2>深入了解基础类型</h2>
+
+			每一个基础类型实际上都是一个相对复杂的类，支持它自己的接口函数、重载以及类似操作。在这一节，我们将更全面地看看每一个类型所提供的东西，同时还要看看到这些看起来相似的类型应该如何区分。<br><br>
+
+			在研究这些类时，我们将重点关注它们的接口而不是太具体的细节。同时，我们会提供一个例子来告诉你能对这些对象做什么和不能做什么。对于一些底层的细节，建议查询../opencv2/core/core.hpp文件。<br><br>
+
+			<h3>Point类</h3>
+
+			作为OpenCV的基础类型，Point类可能是最简单的。正如我们之前提到的，它们的实现是基于一个基础模板结构，所以它们可以成为任何类型的点，如整型和浮点型等。这里实际上有两个这样的模板，一个是给二维点提供的，另一个是给三维点提供的。Point类的巨大优势在于它们简单且开销小。原生上并没有对它们定义很多的操作，但它们可以转成更广义的类型，比如在需要的时候可以转换为固定向量类或是固定矩阵类（接下来要讨论到）。 <br><br>
+
+			在大多数程序中，Point类是通过类似于cv::Point2i和cv::Point3f这类别名来实例化的，这些别名的最后一个字母表示构造该点所需要的原语（在这里，b是一个无符号字符，s是一个短整型，i是一个32位整型，f是一个32位浮点数，d是一个64位浮点数）。<br><br>
+
+			表3-1是Point类原生支持的函数列表（相对较短）。注意，这里有几个非常重要的受支持的操作，但它们是间接地通过隐式转换到固定向量类而受支持（在固定向量类中介绍）。这些操作显著包含所有的向量（vector）和标量（singleton），重载了线性代数的操作符以及比较操作符。<br><br>
+
+			表3-1：直接受Point类支持的操作
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td><strong>操作</strong></td><td><strong>示例</strong></td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::Point2i p; <br>cv::Point3i p; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::Point3f p2(p1); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>cv::Point2i(x0,x1); <br>cv::Point3d p(x0,x1,x2); </td>
+			</tr>
+			<tr class="dark">
+			<td>构造成固定向量类</td><td>(cv::Vec3f) p; </td>
+			</tr>
+			<tr>
+			<td>成员访问</td><td>p.x, p.y, // and for three-dimensional point classes: P.Z</td>
+			</tr>
+			<tr class="dark">
+			<td>点乘</td><td>float x = p1.dot(p2); </td>
+			</tr>
+			<tr>
+			<td>双精度点乘</td><td>double x = p1.dot(p2); </td>
+			</tr>
+			<tr class="dark">
+			<td>叉乘</td><td>p1.cross(p2); //(for three-dimensional point classes only)</td>
+			</tr>
+			<tr>
+			<td>判断一个点p是否在矩形r内</td><td>p.inside(r); //(for two-dimensional point classes only)</td>
+			</tr>
+			</table><br><br>
+
+
+			<h3>cv::Scalar类</h3>
+
+			cv::Scalar是四维点类。与其他类型类似，它实际上与一个模板类相关，但访问它的别名返回一个该模板的实例，在这个模板中，所有的成员都是双精度浮点数。在计算机视觉中，cv::Scalar类有一些与四元向量相关的特殊成员函数。表3-2例举了一些cv::Scalar支持的操作。<br><br>
+
+			表3-2：cv::Scalar类支持的操作 
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td><strong>操作</strong></td><td><strong>示例</strong></td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::Scalar s; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::Scalar s2(s1); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>cv::Scalar s(x0); cv::Scalar s(x0,x1,x2,x3); </td>
+			</tr>
+			<tr class="dark">
+			<td>元素相乘</td><td>s1.mul(s2); </td>
+			</tr>
+			<tr>
+			<td>（四元数）共轭</td><td>s.conj(); //(returns cv::Scalar(s0, -s1, -s2, -s2))</td>
+			</tr>
+			<tr class="dark">
+			<td>（四元数）真值测试</td><td>s.isReal(); //(returns true, if s1==s2==s3==0)</td>
+			</tr>
+			</table><br><br>
+
+			你将注意到，对于cv::Scalar，转成固定向量类的操作并没有出现在表3-2中（但在表3-1中有出现）。这是因为，不像Point类，cv::Scalar直接从固定向量类模板实例中继承而来。因此，它继承了所有的向量代数操作、成员访问函数（比如，操作符[]）和一些固定向量类的特性。我们之后会介绍固定向量类，但现在，只需要记住cv::Scalar是四维双精度向量的快速表示，它有很少几个对各种类型的四维向量有用的成员函数。<br><br>
+
+			<h3>size类</h3>
+			
+			size类在实际操作时与Point类相似，而且可以与Point类互相转换。这两者之间主要的区别在于Point类的数据成员是x和y，而size类中对应的成员是witdh和height。size类的三个别名分别是cv::Size，cv::Size2i，cv::Size2f。前面两个是等价的，表示整数大小，而最后一个是表示32位浮点大小。表3-3例举了size类支持的操作。<br><br>
+
+			表3-3：size类直接支持的操作
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td><strong>操作</strong></td><td><strong>示例</strong></td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::Size sz; <br>cv::Size2i sz; <br>cv::Size2f sz; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::Size sz2(sz1); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>cv::Size2f sz(w, h); </td>
+			</tr>
+			<tr class="dark">
+			<td>成员访问</td><td>sz.width; sz.height; </td>
+			</tr>
+			<tr>
+			<td>计算面积</td><td>sz.area(); </td>
+			</tr>
+			</table><br><br>
+
+			不像Point类，size类不支持转换到固定向量类。这意味着size类有更受限的用途。另一方面，Point类和固定向量类毫无疑问可以被换成size类。<br><br>
+			
+			<h3>cv::Rect类</h3>
+
+			矩形类包含Point类的成员x和y（矩形左上角）和size类的成员width和height（代表了矩形的大小）。然而矩形类并不是从Point类或size类继承过来的，所以它并没有从它们那里继承操作（表3-4）。<br><br>
+
+			表3-4：cv::Rect直接支持的操作
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td>操作</td><td>示例</td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::Rect r; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::Rect r2(r1); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>cv::Rect(x,y,w,h); </td>
+			</tr>
+			<tr class="dark">
+			<td>由起始点和大小构造</td><td>cv::Rect(p, sz); </td>
+			</tr>
+			<tr>
+			<td>由两个对角构造</td><td>cv::Rect(p1,p2); </td>
+			</tr>
+			<tr class="dark">
+			<td>成员访问</td><td>r.x; r.y; r.width; r.height; </td>
+			</tr>
+			<tr>
+			<td>计算面积</td><td>r.area(); </td>
+			</tr>
+			<tr class="dark">
+			<td>提取左上角</td><td>r.tl(); </td>
+			</tr>
+			<tr>
+			<td>提取右下角</td><td>r.br(); </td>
+			</tr>
+			<tr class="dark">
+			<td>判断点p是否在矩形r内</td><td>r.contains(p); </td>
+			</tr>
+			</table><br><br>
+
+			cv::Rect实际上是用整数实例化的一个矩形模板的别名。<br><br>
+
+			表3-5显示，cv::Rect也支持一系列的覆写操作符，它们可以用于计算两个矩形、一个矩形或别的对象的各种各样的几何特性。<br><br>
+			
+			表3-5：cv::Rect对象的覆写操作符
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td>操作</td><td>示例</td>
+			</thead>
+			<tr>
+			<td>矩形r1和矩形r2的交集</td><td>cv::Rect r3 = r1 & r2; r1 &= r2; </td>
+			</tr>
+			<tr class="dark">
+			<td>同时包含矩形r1和矩形r2的最小面积矩形</td><td>cv::Rect r3 = r1 | r2; r1 |= r2; </td>
+			</tr>
+			<tr>
+			<td>平移矩形r x个数量</td><td>cv::Rect rx = r + x; r += x; </td>
+			</tr>
+			<tr class="dark">
+			<td>扩大矩形r s大小</td><td>cv:: Rect rs = r + s; r += s; </td>
+			</tr>
+			<tr>
+			<td>比较矩形r1与矩形r2是否相等</td><td>bool eq = (r1 == r2); </td>
+			</tr>
+			<tr class="dark">
+			<td>比较矩形r1和矩形r2是否不相等</td><td>bool ne = (r1 != r2); </td>
+			</tr>
+			</table><br><br>
+			
+			<h3>cv::RotatedRect类</h3>
+			
+			cv::RotatedRect类是OpenCV中少数底层没有使用模板的C++接口之一。同时，它是包含一个中心点cv::Point2f、一个大小cv::Size2f和一个额外的角度float的容器。其中浮点类型（float）的角度代表图形绕中心点旋转的角度。cv::RotatedRect和cv::Rect有一个非常重要的不同点是cv::RotatedRect是以中心位原点，而cv::Rect则位于左上角为原点。表3-6列举了cv::RotatedRect类直接支持的操作。<br><br>
+
+			表3-6：cv::RotatedRect 
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td><strong>操作</strong></td><td><strong>示例</strong></td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::RotatedRect rr(); </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::RotatedRect rr2(rr1); </td>
+			</tr>
+			<tr>
+			<td>从两个点构造</td><td>cv::RotatedRect(p1,p2); </td>
+			</tr>
+			<tr class="dark">
+			<td>值构造函数，需要一个点（point）、<br>一个大小（size）和一个角度（angle）</td><td>cv::RotatedRect rr(p, sz, theta); </td>
+			</tr>
+			<tr>
+			<td>成员访问</td><td>rr.center，rr.size，rr.angle</td>
+			</tr>
+			<tr class="dark">
+			<td>返回四个角的列表</td><td>rr.points(pts[4]); </td>
+			</tr>
+			</table>
+
+			<h3>固定矩阵类</h3>
+
+			固定矩阵类是为编译时就已知维度的矩阵打造的，着也是它称为“固定”的原因。因为它们内部的所有数据都在堆栈上分配的，所以它们的分配和清除都很快。对固定矩阵类的操作运行很快，而且它们还在小型矩阵（2x2，3x3，等等）上做过特别的优化。固定矩阵类同时也是在OpenCV的C++接口中基本类型的核心。固定向量继承自固定矩阵类，而其他类的重要操作，要么是继承自固定向量（类似cv::Scalar），要么是依赖于转换成固定向量类。通常，固定矩阵类实际上是一个模板。这个模板成为cv::Matx&lt;&gt;，但独立的矩阵则通常通过别名分配。这些别名的基础格式是cv::Matx{1,2,...}{1,2,...}{f,d}，其中的数字可以是1到6之间的任何数，尾部的字母与之前的类型一样。<br><br>
+
+			一般来说，当你要表示一个用来处理矩阵代数的矩阵的时候，你就会用到固定矩阵类。而如果你的对象是一个像图像或大型点列表这样的大数组，使用固定矩阵类就不是个好主意。这种情况下你应该使用cv::Mat（我们将在下一章介绍）。固定矩阵类是你在编译时候就知道矩阵大小的时候使用的（比如相机矩阵）。表3-7列举了cv::Matx支持的操作。 <br><br>
+
+			表3-7：cv::Matx 
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td>操作</td><td>示例</td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::Matx33f m33f; cv::Matx43d m43d; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::Matx22d m22d(n22d); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>cv::Matx21f m(x0,x1); <br>cv::Matx44d m(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15); </td>
+			</tr>
+			<tr class="dark">
+			<td>含相同元素的矩阵</td><td>m33f = cv::Matx33f::all(x); </td>
+			</tr>
+			<tr>
+			<td>全零矩阵</td><td>m23d = cv::Matx23d::zeros(); </td>
+			</tr>
+			<tr class="dark">
+			<td>全一矩阵</td><td>m16f = cv::Matx16f::ones(); </td>
+			</tr>
+			<tr>
+			<td>创建一个单位矩阵</td><td>m33f = cv::Matx33f::eye(); </td>
+			</tr>
+			<tr class="dark">
+			<td>创建一个可以容纳另一个矩阵对角线的矩阵</td><td>m31f = cv::Matx33f::diag(); </td>
+			</tr>
+			<tr>
+			<td>创建一个均匀分布的矩阵</td><td>m33f = cv::Matx33f::randu( min, max ); </td>
+			</tr>
+			<tr class="dark">
+			<td>创建一个正态分布的矩阵</td><td>m33f = cv::Matx33f::nrandn( mean, variance ); </td>
+			</tr>
+			<tr>
+			<td>成员访问</td><td>m( i,j ), m( i ); //one argument for one-dimensional matrices only</td>
+			</tr>
+			<tr class="dark">
+			<td>矩阵代数运算</td><td>m1 = m0; m0 * m1; m0 + m1; m0 - m1; </td>
+			</tr>
+			<tr>
+			<td>单例（Singleton）代数</td><td>m * a; a * m; m / a</td>
+			</tr>
+			<tr class="dark">
+			<td>比较</td><td>m1 == m2; m1 != m2; </td>
+			</tr>
+			<tr>
+			<td>点积</td><td>m1.dot( m2 ); //(sum of element-wise multiplications, precision of m)</td>
+			</tr>
+			<tr class="dark">
+			<td>点积</td><td>m1.ddot( m2 ); //(sum of element-wise multiplications, double precision)</td>
+			</tr>
+			<tr>
+			<td>改变矩阵形状</td><td>m91f = m33f.reshape&lt;9,1&gt;(); </td>
+			</tr>
+			<tr class="dark">
+			<td>变换操作符</td><td>m44f = (Matx44f) m44d; </td>
+			</tr>
+			<tr>
+			<td>提取（i，j）处的2*2子矩阵</td><td>m44f.get_minor&lt;2,2&gt;( i, j ); </td>
+			</tr>
+			<tr class="dark">
+			<td>提取第i行</td><td>m14f = m44f.row( i ); </td>
+			</tr>
+			<tr>
+			<td>提取第j列</td><td>m41f = m44f.col( j ); </td>
+			</tr>
+			<tr class="dark">
+			<td>提取矩阵对角线</td><td>m41f = m44f.diag(); </td>
+			</tr>
+			<tr>
+			<td>计算转置</td><td>n44f = m44f.t(); </td>
+			</tr>
+			<tr class="dark">
+			<td>逆矩阵</td><td>n44f = m44f.inv( method ); //(default method is cv::DECOMP_LU)</td>
+			</tr>
+			<tr>
+			<td>解线性系统</td><td>m31f = m33f.solve( rhs31f, method ); <br>m32f = m33f.solve&lt;2&gt;( rhs32f, method ); //(template forma)<br>&nbsp; //default method is cv::DECOMP_LU</td>
+			</tr>
+			<tr class="dark">
+			<td>每个元素的乘法</td><td>m1.mul( m2 ); </td>
+			</tr>
+			</table>
+
+			<ul>
+			<li>当隐含的矩阵方程的右边有多个列时使用模板的形式。在这个案例中，本质上是在同时解决k个不同的系统。k的值必须作为模板参数传递给solve&lt;&gt;()。它还将决定结果矩阵中的列数</li>
+			</ul><br>
+
+			注意，很多固定矩阵的函数相对类是静态的（比如，你访问它们是作为类而不是特定对象的成员）。举个例子，如果想构造一个3 x 3的单位矩阵，这有一个方便的类函数cv::Mat33f::eye()。注意，在这个例子中，eye()不需要任何参数，因为它是类的成员，并且已经是cv::Matx&lt;&gt;模板的3 x 3实例。<br><br>
+			
+			
+			<h3>固定向量类</h3>
+			
+			固定向量类是从固定矩阵类派生出来的。它们其实只是为了更方便地使用cv::Matx&lt;&gt;。在C++继承的意义上，可以说固定向量模板cv::Vec是列为1的cv::Matx&lt;&gt;。为特定实例准备好的别称有这样的形式cv::Vec{2,3,4,6}{b,s,w,i,f,d}，最后一个字母意义如前文所述（另外加上w，表示unsigned short）。表3-8展示了cv::Vec支持的操作。<br><br>
+
+			表3-8：cv::Vec支持的操作
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td><strong>操作</strong></td><td><strong>示例</strong></td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>Vec2s v2s; Vec6f v6f; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>Vec3f u3f( v3f ); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>Vec2f v2f(x0, x1); Vec6d v6d(x0, x1, x2, x3, x4, x5); </td>
+			</tr>
+			<tr class="dark">
+			<td>成员访问</td><td>v4f[ i ]; v3w( j ); //(operator () and [] both work)</td>
+			</tr>
+			<tr>
+			<td>向量叉乘</td><td>v3f.cross( u3f ); </td>
+			</tr>
+			</table><br><br>
+
+			固定向量类的最主要的便利是它可以通过单个数索引各项，以及几个特定的额外的函数是常规矩阵运算有意义（比如叉乘）。可以在表3-8中看出，该类拥有相对的新方法以及大量继承自固定矩阵类的方法。<br><br>
+
+
+			<h3>复数类</h3>
+
+			还有有一个应该包含在基础类型中的类，它就是复数类。OpenCV的复数类与STL复数类模板complex&lt;&gt;不一样，但是与之兼容，可以相互转换。它们最大的区别在于成员获取。在STL类中，虚部和实部是通过成员函数real()和imag()获得的，而在OpenCV中，直接通过成员变量re和im获取。表3-9列出了复数类支持的操作。<br><br>
+
+			表3-9：OpenCV复数类支持的操作
+			<table cellpadding="10px" cellspacing="0">
+			<thead>
+			<td><strong>操作</strong></td><td><strong>示例</strong></td>
+			</thead>
+			<tr>
+			<td>默认构造函数</td><td>cv::Complexf z1; cv::Complexd z2; </td>
+			</tr>
+			<tr class="dark">
+			<td>复制构造函数</td><td>cv::Complexf z2(z1); </td>
+			</tr>
+			<tr>
+			<td>值构造函数</td><td>cv::Complexd z1(re0); cv::Complexd(re0, im1); </td>
+			</tr>
+			<tr class="dark">
+			<td>成员访问</td><td>z1.re; z1.im; </td>
+			</tr>
+			<tr>
+			<td>复共轭</td><td>z2 = z1.conj(); </td>
+			</tr>
+			</table><br><br>
+
+			与很多基本类型一样，复数类为重要的模板取了别名，cv::Complexf和cv::Complexd分别是单精度和双精度复数的别名。<br><br>
+
+			-待续-
+			
+			
+			

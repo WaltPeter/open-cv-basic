@@ -63,7 +63,7 @@ pre {
     overflow-x: auto;
     border: 1px solid #2d3143;
     color: #f8f8f2;
-	background: #FFAE35; 
+	background: #F90; /*#FFAE35;*/ 
 }
 
 table {
@@ -89,4 +89,22 @@ img {
     border: 1px solid #282828;
     color: #282828;
 	background: white; 
+}
+
+thead { 
+	background: #F90; 
+	border-radius: 5px 5px 0 0; 
+}
+
+.dark {
+	background: #282835; 
+}
+
+table { 
+    background: #2d3143;
+    border-radius: 5px;
+    font-family: Courier, monospace, Consolas, "Liberation Mono", Menlo;
+    color: #f8f8f2;
+	margin-top:10px; 
+	max-width: 70vw; 
 }

@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 反转图像">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>反转图像</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">反转图像</div>
+		<div class="content">
+			
+			<h1>反转图像</h1>
+			
+			这是我将使用的原始图像。
+			
+			<pre style="text-align: center;"><img src="../Files/Original Image.jpg"/><br>原图</pre>
+			
+			反转图像就像拍摄负片。
+			
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt;
+
+using namespace cv;
+using namespace std;
+
+int main()
+{
+        //读取图像
+        Mat img = imread("MyPic.jpg");
+        namedWindow("Original");
+        imshow("Original", img);
+
+        //反转图像
+        bitwise_not(img, img);
+        namedWindow("Inverted");
+        imshow("Inverted", img);
+
+        waitKey(0);
+		destroyAllWindows(); 
+      
+        return 0;
+}</pre>
+			
+			<pre style="text-align: center;"><img src="../Files/Inverted Image.jpg"/><br>反转图</pre><br><br>
+			
+			<h3>解说</h3>
+			
+			<pre>bitwise_not(img, img);</pre>
+			
+			此函数将第一个参数中图像每个元素的每个位取反，然后将结果放入第二个参数图像中。<br>
+			此功能可以处理图像。这意味着可以将相同的变量用于第一和第二参数。<br><br>
+
+			<table>
+			<tr><td>
+				例- </td><td>对于8位图片，值0将映射为（255-0）= 255</td>
+				</tr>
+                <tr><td></td><td>
+				值46将映射到（255-46）= 209</td></tr>
+				<tr><td></td></tr>
+				<tr><td></td>
+         		<td>对于16位图像，值0将映射到（65535-0）= 65535</td></tr>
+				<tr><td></td>
+                <td>值46将映射为（65535-46）= 65489</td></tr>
+			</table>
+			
+			<pre class="note"><strong>void bitwise_not(InputArray src, OutputArray dst, InputArray mask=noArray())</strong>
+该函数计算输入数组按元素按位求逆。
+对于浮点输入数组，其特定于机器的位表示形式（通常符合IEEE754）用于操作。 在多通道阵列的情况下，每个通道都是独立处理的。
+
+参数：<ul>
+<li><strong>src</strong> – 输入数组。</li>
+<li><strong>dst</strong> – 输出数组，其大小和类型与输入数组相同。</li>
+<li><strong>mask</strong> – 可选的操作掩码，8位单通道数组，用于指定要更改的输出数组的元素。</li></ul></pre>
+			
+			
+			
+			
+			
+			
+			
