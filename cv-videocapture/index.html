@@ -162,8 +162,8 @@ cout &lt;&lt; "Frames per seconds : " &lt;&lt; fps &lt;&lt; endl;</pre>
 
 			该程序与上述程序的主要区别在于使用VideoCapture构造函数。在此程序中，你只需将摄像机的索引提供给VideoCapture对象的构造函数而不是视频文件名。以下是OpenCV示例代码。
 			
-			<pre>#include &lt;opencv2/opencv.hpp>
-#include &lt;iostream>
+			<pre>#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;iostream&gt;
 
 using namespace cv;
 using namespace std;
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 	VideoCapture cap(0);
 
 	//如果不成功退出程序
-	if (！cap.isOpened())  
+	if (!cap.isOpened())  
 	{
 		cout &lt;&lt; "Cannot open the video camera" &lt;&lt; endl;
 	cin.get(); //等待键盘

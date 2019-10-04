@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>OpenCV数据类型（下）</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">OpenCV数据类型（下）</div>
+		<div class="content">
+			
+			<h1>辅助对象</h1>
+
+			除了基本类型和大容量，还有一系列的辅助对象，它们对控制各种各样的算法（比如终止条件）和各种在容器上的操作（比如ranges或者slices）非常有用。还有一种非常重要的对象，智能指针cv::Ptr。深入cv::Ptr，我们会检查已经被集成进OpenCV的C++接口的垃圾收集系统（garbage colllecting system）。这个系统讲我们从对象的申请和释放中解放出来，完全不同于早期基于C语言的接口（比如版本2.1）。<br><br>
+
+			<h2>cv::TermCriteria类</h2>
+
+			很多算法需要一个终止条件以确定何时退出。通常，终止条件的形式要么是达到允许的有限迭代次数（称为COUNT或MAX_ITER），要么是某种形式的误差参数（如果接近于如此的程度，就可以退出，称为EPS，即epsilon的简称）。cv::TermCriteria对象把一个或两个终止条件封装，以方便传进OpenCV算法函数里。它们有三个成员变量（type，maxCount以及epsilon），都可以直接设置（它们是公有的），更常见的做法是通过它们的构造函数TermCriteria(int type, int maxCount, double epsilon) 进行设置。变量type设置为cv::TermCriteria::COUNT或者TermCriteria::EPS。也可以把两个条件并（使用位运算符:|）在一起。cv::TermCriteria::COUNT是cv::TermCriteria::MAX_ITER的同义词，所以如果喜欢，也可以使用后者。如果终止条件包含cv::TermCriteria::COUNT，就告诉算法在maxCount次迭代之后终止。如果终止条件包含cv::TermCriteria::EPS，就告诉算法在与算法收敛相关的某些度量降到epsilon以下后终止。（确切的终止标准显然依赖于算法，但文档会清楚地说明特定的算法是如何解释的。）type参数必须进行相应的设置以使用maxCount或epsilon。<br><br>
+
+			<h2>cv::Range类</h2>
+
+			cv::Range类用于确定一个连续的整数序列。cv::Range对象有两个元素start和end，与cv::TermCriteria类似，它们经常在构造函数cv::Range(int start, int end) 中设定，范围包含初始值start，但不包含终止值end，因此cv::Range rng(0, 4)包含值0,1,2,3，但不包含4。<br><br>
+
+			使用size()函数可以得到一个range类的元素数量，在上面的例子中，rng.size()等于4。在cv::Range类中有一个成员函数empty()，用于测试一个range是否含有元素。最后，cv::Range::all()可以用在任何需要获得对象可用范围的时候。<br><br>
+
+			<h2>cv::Ptr模板和垃圾收集</h2>
+
+			智能指针（smart pointer）是C++中一个非常有用的类型。（如果熟悉C++标准最近的一些内容，你会注意到OpenCV cv::Ptr&lt;&gt;模板和smart_ptr&lt;&gt;模板之间的相似性。类似地，Boost库中也有一个智能指针shared_ptr&lt;&gt;。它们或多或少都是相同的。）这个指针允许我们创建一个对象的引用，然后把它传递到各处。你可以创建更多的对该对象的引用，然后所有这些引用都会被计数。当引用超出范围，智能指针的引用计数就会减少。一旦所有的引用（指针的实例）消失，这个对象将自动清除（释放）。而作为程序员的你，不再需要记录这些东西。<br><br>
+
+			接下来我们将了解它如何工作。首先，需要为你想要封装的对象定义一个指针模板的实例。可以通过调用类似cv::Ptr&lt;Matx33f&gt; p(new cv::Matx33f)或者cv::Ptr&lt;Matx33f&gt; p = makePtr&lt;cv::Matx33f&gt;()的形式实现。这个模板类的构造函数就拥有指向对应对象的指针。进行这样的操作之后，你就会得到一个智能指针p，这是一个类似指针的对象，你可以随意传递，并且像使用标准指针一样使用它（它支持operator*()和operator-&gt;()等操作）。一旦得到p，就可以创建其他相同类型的对象，而不需要把一个指向新的对象的指针传递给它们。举个例子，你可以创建Ptr&lt;Mat33f&gt; q，当你把p的值传递给q时，在后台的某个地方，智能指针就会开始执行它的“智能”行为。你可以发现，像一个正常的指针一样，这里仍然只有一个实际上的cv::Mat33f实例，而p和q同时指向它。不同之处在于，p和q都知道它们只是两个指针中的其一。当p被释放（比如超出了其生命周期），q就能够知道它是原始矩阵仅存的引用。如果这时候q也要被释放，这时它的析构函数将被调用（隐式），由于q发现它是遗留下来的最后一个引用，所以它会释放它的原始矩阵。可以把这个过程想成建筑中的最后一个人离开的时候有责任关灯和关门（在这个例子中，也需要把建筑物夷为平地）。<br><br>
+
+			cv::Ptr&lt;&gt;模板类支持多个接口中的与智能指针的引用计数功能相关的附加函数。特别地，函数addref()和release()增加和减少指针内部的引用计数。这些都是相对危险的函数，但需要自己管理引用计数的时候还是可以用的。<br><br>
+
+			还有empty()函数，可用于确定一个智能指针是否指向一个已经被释放掉的对象。这种情况会发生在你对一个对象调用一次或多次release()的时候。在这种情况下，你仍然有一个智能指针，但该指针对象可能已经被销毁了。empty()函数有第二种应用，确定智能指针对象内部对象指针是否出于其他原因而为NULL。举个例子，这种情况可能发生在你给智能指针赋值时使用了一个刚好首先返回NULL的函数（cvLoadImage()，fopen()等）。（为了本例的目的，我们将参考IplImage和cvLoadImage()，这两种构造都来自于现在已弃用的老版本2.1之前的接口。我们不会详细讨论它们，但你需要知道，IplImage是图像的就数据结构，而cvLoadImage()是从磁盘获取图像的旧函数，并返回指向结果图像结构的指针。）<br><br>
+
+			<!--Ptr&lt;&gt;中最后一个要了解的成员是delete_obj()。这是一个引用计数为零时自动调用的函数。默认情况下，这个函数定义了但不做任何事情。这样你就可以在实例化指向一个需要一些特定操作来清除指向的类对象的cv::Ptr&lt;&gt;时重载该函数。举个例子，假设你在使用旧类型的（2.1版本以前）的IplImage。-->
+			
+		</div> 
+	</body>
+</html>
