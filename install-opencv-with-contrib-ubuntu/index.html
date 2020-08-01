@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>【小白用】在Ubuntu上安装OpenCV任何版本+Contrib库+CUDA兼容 </title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<div id="banner">【小白用】在Ubuntu上安装OpenCV任何版本+Contrib库+CUDA兼容 </div>
+		<div class="content">
+			
+			<h1>【小白用】在Ubuntu上安装OpenCV任何版本+Contrib库+CUDA兼容 </h1>
+			
+			各位小伙伴们好。时隔上次更新已经很久了呀。看了看我之前的OpenCV安装教程视频总感觉不是很完整，评论区也有人问contrib如何安。这次更新是*尝试*使得更完善吧。嘛，本人现在并不在国内，不知道小伙伴们会不会遇到被墙的问题呢（如有通报我）。<br><br>
+			
+			<iframe src="https://player.bilibili.com/player.html?aid=68562789&cid=118825962&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" class="note" style="height:50vw;"></iframe>
+			
+			<h2>0.介绍</h2> 
+			这里先很简短的介绍。<br><br>
+			
+			<h3>NVidia CUDA，cuDNN 与 OpenCV</h3>
+			<pre style="text-align: center;"><img src="../Files/cuda.png"/></pre>
+			<pre>CUDA是Nvidia创建的并行计算平台和应用程序编程接口模型。它允许软件开发人员和软件工程师使用支持CUDA的图形处理单元进行通用处理。</pre>
+			简单来说，CUDA就是一个配合NVidia GPU的一个驱动，使如深度学习应用上能达到加速作用。<br><br>
+			
+			在OpenCV上CUDA库能使处理速度更快，特别是使用dnn模块。dnn模块提供了深度学习神经网络的接口，使OpenCV能使用神经网络。其中提供如caffe，tensorflow甚至是darknet YOLO的接口 <a href="https://docs.opencv.org/master/d2/d58/tutorial_table_of_content_dnn.html">例子</a><br><br>
+			
+			<h3>OpenCV Contrib库</h3>
+			OpenCV Contrib库是非官方的第三方开发扩充库。通过这个库，我们能使用如dnn、相机标注、3D成像、ArUco、物体追踪，甚至是需付费的SURF、SIFT特征点提取算法。<br><br>
+			
+			<h2>1.准备</h2>
+			这里我默认你：
+			<pre>1. 使用Ubuntu（这里使用18.04，其他版本操作其实差别不大）. <br>2. 计算机拥有NVidia CUDA GPU. <br>3. 已安装对应版本的CUDA和cuDNN. </pre>
+			
+			<h2>2.安装</h2>
+			<h3>安装依赖包裹</h3>
+			首先先安装一切有必要的包裹：
+			<pre>sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential cmake unzip pkg-config
+sudo apt-get install libjpeg-dev libpng-dev libtiff-dev
+sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev
+sudo apt-get install libv4l-dev libxvidcore-dev libx264-dev
+sudo apt-get install libgtk-3-dev
+sudo apt-get install libatlas-base-dev gfortran
+sudo apt-get install python3-dev</pre>
+			
+			如果使用Ubuntu默认的下载源可能比较慢，建议在设置内切换到清华源。<br><br>
+			
+			<h3>下载OpenCV源代码</h3>
+			接下来我们下载OpenCV的源代码。这是因为如果要配置CUDA支持，OpenCV并没有提供现成直接安装的包裹（C++版也是如此，不像Python的能直接pip install），我们必须先下载源代码，然后cmake编译后安装。<br><br>
+			1. 进入OpenCV Github Release网页：<a href="https://github.com/opencv/opencv/releases">https://github.com/opencv/opencv/releases</a> <br>
+			2. 选择你想要的版本，我选择了最新的4.4.0.<br>
+			3. 右键复制链接。<br>
+			
+			<pre style="text-align: center;"><img src="../Files/opencv_inst_zip_download.png"/></pre><br>
+			
+			4. 接下来轮到OpenCV-contrib：<a href="https://github.com/opencv/opencv_contrib/releases">https://github.com/opencv/opencv_contrib/releases</a><br>
+			5. 选择一样版本的contrib（不一样版本后果自负哈）<br>
+			6. 右键复制链接
+			<pre style="text-align: center;"><img src="../Files/opencv_inst_zip_download_2.png"/></pre>
+			
+			7. 在home下打开终端。加上从上面拿到的两个链接，通过以下命令，我们能下载OpenCV的源代码并解压: 
+			<pre>cd ~
+wget -O opencv.zip https://github.com/opencv/opencv/archive/[你的版本号].zip
+wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/[你的版本号].zip
+unzip opencv.zip
+unzip opencv_contrib.zip
+mv opencv-[你的版本号] opencv
+mv opencv_contrib-[你的版本号] opencv_contrib</pre> <br><br>
+			
+			<h3>[可选] 搭建Python环境</h3>
+			如果你也想在Python下使用OpenCV，可以按照下列指示。我们会在这一步安装python与搭建virtualenv虚拟环境。<br>
+			1. 安装pip
+			<pre>wget https://bootstrap.pypa.io/get-pip.py
+sudo python3 get-pip.py</pre>
+			2. 安装virtualenv和virtualenvwrapper 
+			<pre>sudo pip install virtualenv virtualenvwrapper
+sudo rm -rf ~/get-pip.py ~/.cache/pip</pre>
+			3. 打开Ubuntu的~/.bashrc文件，添加virtualenv和virtualenvwrapper相关bash终端变量。
+			我们可以使用以下命令使用gedit打开并编辑~/.bashrc文件： 
+			<pre>gedit ~/.bashrc</pre>
+			在打开的文件最后，添加以下段落： 
+			<pre># virtualenv and virtualenvwrapper
+export WORKON_HOME=$HOME/.virtualenvs
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+source /usr/local/bin/virtualenvwrapper.sh</pre>
+			保存并退出gedit. <br>
+			4. 创建virtualenv虚拟环境 
+			<pre>mkvirtualenv [自己取一个环境名] -p python3</pre>
+			例子：
+			<pre>mkvirtualenv opencv_cuda -p python3</pre>
+			5. 安装numpy.
+			<pre>pip3 install numpy</pre>
+			numpy是其中一个在Python写程序时非常常用的库之一，主要供应Python对array的运算。
+			6. 每次要使用你刚创建的虚拟环境，在终端输入以下命令即可：
+			<pre>workon [环境名]</pre><br><br>
+			
+			<h3>确定自己GPU的框架版本(architecture version)</h3>
+			从<a href="https://developer.nvidia.com/cuda-gpus">这里</a>我们可以得到自己GPU的框架版本。
+			<pre style="text-align: center;"><img src="../Files/cuda_architecture_ver.png"/><br><br>寻找自己的GPU型号，Compute Capability就是所谓的框架版本。</pre>
+			<br><br> 
+			
+			<h3>配置并编译OpenCV</h3>
+			如果你在之前的部分创立了新的虚拟环境，切换到你的虚拟环境中：
+			<pre>workon [环境名]</pre>
+			创建build文件夹，然后使用CMake编译： 
+			<pre>cd ~/opencv
+mkdir build
+cd build</pre>
+			CMake编译命令。注意必须更改CUDA_ARCH_BIN项，为GPU的框架版本。
+			<pre>cmake -D CMAKE_BUILD_TYPE=RELEASE \
+	-D CMAKE_INSTALL_PREFIX=/usr/local \
+	-D INSTALL_PYTHON_EXAMPLES=ON \
+	-D INSTALL_C_EXAMPLES=OFF \
+	-D OPENCV_ENABLE_NONFREE=ON \
+	<font color="tomato">-D WITH_CUDA=ON \
+	-D WITH_CUDNN=ON \
+	-D OPENCV_DNN_CUDA=ON \
+	-D ENABLE_FAST_MATH=1 \
+	-D CUDA_FAST_MATH=1 \
+	-D CUDA_ARCH_BIN=<b>7.5</b> \
+	-D WITH_CUBLAS=1 \</font>
+	-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+	-D HAVE_opencv_python3=ON \
+	-D PYTHON_EXECUTABLE=~/.virtualenvs/opencv_cuda/bin/python \
+	-D BUILD_EXAMPLES=ON ..</pre>
+			
+			如果没有添加Python支持的，可以删除最后第二和第三行，即：
+			<pre>cmake -D CMAKE_BUILD_TYPE=RELEASE \
+	-D CMAKE_INSTALL_PREFIX=/usr/local \
+	-D INSTALL_PYTHON_EXAMPLES=ON \
+	-D INSTALL_C_EXAMPLES=OFF \
+	-D OPENCV_ENABLE_NONFREE=ON \
+	<font color="tomato">-D WITH_CUDA=ON \
+	-D WITH_CUDNN=ON \
+	-D OPENCV_DNN_CUDA=ON \
+	-D ENABLE_FAST_MATH=1 \
+	-D CUDA_FAST_MATH=1 \
+	-D CUDA_ARCH_BIN=<b>7.5</b> \
+	-D WITH_CUBLAS=1 \</font>
+	-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+	-D BUILD_EXAMPLES=ON ..</pre>
+			
+			从上，WITH_CUDA和WITH_CUDNN项指的是用CUDA和cuDNN。OPENCV_DNN_CUDA项表示我们要编译后的dnn模块支持CUDA。ENABLE_FAST_MATH, CUDA_FAST_MATH和WITH_CUBLAS项是为了优化运算而开启的。<br><br>
+			
+			CUDA_ARCH_BIN项的GPU框架版本号很重要，因为如果这个值填错，使用dnn模块时可能会出现以下问题：
+			<pre>cv2.error: OpenCV(4.2.0) /home/waltpeter/opencv/modules/dnn/src/cuda/execution.hpp:52: error: (-217:Gpu API call) invalid device function in function 'make_policy'</pre><br> 
+			
+			然后，编译： 
+			<pre>make -j8</pre>
+			记得取代'8'为你的CPU内核数。<br><br>
+			
+			make时如果你看到以下报错：
+			<pre>$ make
+make: * No targets specified and no makefile found.  Stop.</pre>
+			这是因为上面CMake时并不成功，请检查CMake时的输出。<br><br>
+			
+			<h3>安装OpenCV</h3>
+			编译成功后我们就可安装：
+			<pre>sudo make install
+sudo ldconfig</pre>
+			
+			<pre>sudo gedit /etc/ld.so.conf.d/opencv.conf</pre> 
+			执行此命令后打开的可能是一个空白的文件，不用管，只需要在文件末尾添加: 
+			<pre>/usr/local/lib</pre>
+			<pre>sudo ldconfig </pre>
+			使得刚才的配置路径生效
+			<pre>sudo gedit /etc/bash.bashrc</pre>
+			在末尾加上：
+			<pre>PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig  
+export PKG_CONFIG_PATH</pre>
+			使得配置生效
+			<pre>source /etc/bash.bashrc
+sudo updatedb</pre> <br><br>
+			
+			<h2>3.测试OpenCV安装</h2>
+			1. 创建新文件夹，我命名为OpenCV-Test<br>
+			2. 进入文件夹后右键打开终端<br>
+			3. touch main.cpp 创建名为main.cpp的文件<br>
+			4. 右键main.cpp，使用IDE打开<br>
+			5. 复制代码： <br>
+
+			<pre>#include &lt;opencv2/opencv.hpp&gt; 
+#include &lt;iostream&gt; 
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv)
+{
+ //读取照片
+ Mat image = imread("OpenCV_Logo.png");
+
+ //检测失误
+ if (image.empty()) 
+ {
+  cout &lt;&lt; "Could not open or find the image" &lt;&lt; endl;
+  cin.get(); //等待键盘输入
+  return -1;
+ }
+
+ String windowName = "OpenCV Test";	   //窗口名称
+ namedWindow(windowName); 		   //创建新窗口
+ imshow(windowName, image);		   //使用新窗口显示照片
+ waitKey(0); 				   //等待键盘输入
+ destroyWindow(windowName);		   //关闭所有窗口
+ return 0;
+}
+</pre>
+			6. 网上随意下载张图片，放入与main.cpp相同的文件夹中。<br>
+			7. 更改图片路径。<br> 
+			8. g++编译<pre>g++ -o main main.cpp `pkg-config --libs --cflags opencv`</pre> 
+			9. 运行程序<pre>./main</pre> 
+			10. 没有报错就是安装成功了<br><br>
+			
+			<h3>[可选] Python下测试</h3>
+			<pre>$ workon opencv_cuda
+$ python
+Python 3.5.3 (default, Jun 27 2020, 17:25:39)
+[GCC 6.3.0 20170516] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+&lt;&lt;&lt; import cv2
+&lt;&lt;&lt; cv2.__version__
+'4.2.0'
+&lt;&lt;&lt;</pre>
+			切换到你的虚拟环境中（我的是opencv_cuda）。在输入"python"命令，打开了python的交流模式。在python下import cv2，也就是导入opencv库，然后cv2.__version__质询opencv版本。
+			
+			</div>
+	</body> 
+</html>
