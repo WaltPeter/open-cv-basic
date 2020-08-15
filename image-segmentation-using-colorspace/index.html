@@ -1,0 +1,303 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>色彩空间</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">色彩空间</div>
+		<div class="content">
+			
+			<h1>色彩空间</h1>
+			
+			色彩空间在物体追踪、特征检测等（简单来说就是识别一个东西）扮演着很重要的角色。毕竟每个物体都有特定的颜色和特征，我们可以应用其物体与环境颜色上的差异，从图像中提取特定范围的颜色并加上一些逻辑性的判断，获取待检测物体的位置。<br><br>
+			
+			<h2>颜色</h2>
+			<pre style="text-align: center;"><img src="../Files/colors.png" alt="colors"/></pre>
+			上图可见的是一些常见的颜色，我们人眼一看并可辨认是什么颜色。但是在计算机信息上，我们该如何去定义或描述这些颜色呢？这就是颜色空间的作用了。不同的颜色空间以不同的方式去定义各个颜色，同样的颜色在不同的颜色空间有着不同的值，这是因为每一个颜色空间都有不同的性质。以下我们讨论并比较颜色空间在图像分割上的一些性质。<br><br>
+			
+			<h2>不同的色彩空间</h2>
+在本节中，我们将介绍计算机视觉中使用的一些重要色彩空间。我们不会描述它们背后的理论，因为可以在Wikipedia上找到它。相反，我们将发展一个基本的直觉并学习一些重要的属性，这些属性对于以后的决策很有用。<br />
+<br />
+让我们加载2个相同立方体的图像，如下所示。默认情况下，它将以BGR格式加载。
+			
+			<code><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">bright</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;cube1.jpg&quot;</span><span style="color: #f8f8f2">);</span><br><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">dark</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;cube8.jpg&quot;</span><span style="color: #f8f8f2">);</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/two-cubes.png" alt=""/><br>两张在不同明亮度拍摄的魔方照片</pre>
+			
+			<br>下面我们要从不同的颜色空间分析这例子图像的颜色性质。从常用到非常用，我会介绍：
+			<pre><ul><li>BGR颜色空间(RGB)</li><br><li>HSV颜色空间</li><br><li>Lab颜色空间</li><br><li>YCrCb颜色空间</li></ul></pre>
+			最后我顺带介绍灰度图(Grayscale)<br><br>
+			我们可以使用OpenCV函数cvtColor()在不同的色彩空间之间进行转换。例：
+			<code><span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">cvtColor(input_img,</span> <span style="color: #f8f8f2">output_img,</span> <span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">COLOR_BGR2LAB);</span>   <span style="color: #75715e">//从BGR转LAB</span>
+<span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">cvtColor(input_img,</span> <span style="color: #f8f8f2">output_img,</span> <span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">COLOR_BGR2HSV);</span>   <span style="color: #75715e">//从BGR转HSV</span>
+<span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">cvtColor(input_img,</span> <span style="color: #f8f8f2">output_img,</span> <span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span>   <span style="color: #75715e">//从BGR转YCrCb</span>
+</code>
+			<br><br><br>
+			
+			<h3>BGR色彩空间</h3>
+			
+			<pre style="text-align: center;"><img src="../Files/220px-RGB_color_solid_cube.png" height="250px" style="background-color: white;" alt=""/><br>BGR色彩空间</pre>
+			
+			我制作了个简单的颜色拉条，可以手动尝试每个颜色通道对颜色的关系。
+			
+			<pre><iframe src="rgb_color_picker.html" style="width:calc(100% - 10px); height:200px; border:none; background: dimgray; border-radius: 6px; padding: 5px; "></iframe></pre>
+			
+			BGR色彩空间具有以下属性<br>
+			
+			<ul>
+			<li>它是一种加色空间，其中颜色是通过红色，绿色和蓝色值的线性组合获得的。</li>
+			<li>这三个通道与撞击表面的光量相关。</li>
+			</ul>
+			
+			<br>
+			<h4>取值范围</h4>
+			在OpenCV中，BGR的取值范围(默认的CV_8U格式)为：
+			<pre>0 &gt;= <strong>B</strong> &gt;= 255<br>0 &gt;= <strong>G</strong> &gt;= 255<br>0 &gt;= <strong>R</strong> &gt;= 255</pre>
+			某个通道的值越高，代表那个性质是越高的，反之亦然。如，R通道的值越高，那个像素颜色就越红。
+			<br><br>
+			
+			让我们将两个图像的B，G和R通道分离，然后观察。
+			
+			<pre style="text-align: center;"><img src="../Files/components-bgr.png" alt=""/><br>RGB色彩空间的不同通道蓝色（B），绿色（G），红色（R）分别显示</pre>
+			
+			<h4>观察结果</h4>
+			如果你查看蓝色通道，可以看到在室内照明条件下，第二张图像中的蓝色和白色部分看起来相似，但是第一张图像中有明显的不同。这种不均匀性使得在这种颜色空间中基于颜色的分割非常困难。此外，两个图像的值之间存在整体差异。下面我们总结下与RGB颜色空间相关的固有问题：
+			
+			<ul>
+			<li>严重感到不一致性。</li>
+			<li>色度（颜色相关信息）和亮度（强度相关信息）数据的混合。</li>
+			</ul><br><br><br>
+			
+			
+			<h3>HSV色彩空间</h3>
+			<pre style="text-align: center;"><img src="../Files/hsv.png" style="background-color:white;" alt="" height="250px"/></pre>
+			<pre><iframe src="hsv_color_picker.html" style="width:calc(100% - 10px); height:200px; border:none; background: dimgray; border-radius: 6px; padding: 5px; "></iframe></pre>
+			
+			HSV颜色空间具有以下三个组成部分
+			<ul>
+			<li>H – 色相（主波长）。</li>
+			<li>S – 饱和度（纯度/颜色阴影）。</li>
+			<li>V – 值（强度）。</li>
+			</ul>
+			让我们列举一下它的一些属性。
+			<ul>
+			<li>好事是，它仅使用一个通道来描述颜色（H），从而非常直观地指定颜色。</li>
+			<li>取决于设备。</li>
+			</ul>
+			
+			<h4>取值范围</h4>
+			在OpenCV中，HSV的取值范围(默认的CV_8U格式)为：
+			<pre>0 &gt;= H &gt;= 360 ⇒ OpenCV range = H/2 (0 &gt;= <strong>H</strong> &gt;= 180)
+0 &gt;= S &gt;= 1 ⇒ OpenCV range = 255*S (0 &gt;= <strong>S</strong> &gt;= 255)
+0 &gt;= V &gt;= 1 ⇒ OpenCV range = 255*V (0 &gt;= <strong>V</strong> &gt;= 255)</pre>
+
+			这两个图像的H，S和V分量如下所示。
+			
+			<code><span class="white" style="margin-top: 0; ">analysis_hsv.cpp</span>
+...
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">brightHSV,</span> <span style="color: #f8f8f2">darkHSV;</span> 
+
+<span style="color: #75715e">// 转换颜色空间</span>
+<span style="color: #f8f8f2">cvtColor(bright,</span> <span style="color: #f8f8f2">brightHSV,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span>
+<span style="color: #f8f8f2">cvtColor(dark,</span> <span style="color: #f8f8f2">darkHSV,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span> 
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">bright_hsv[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span>  
+<span style="color: #f8f8f2">split(brightHSV,</span> <span style="color: #f8f8f2">bright_hsv);</span>   <span style="color: #75715e">// 通道分离</span>
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">dark_hsv[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span>  
+<span style="color: #f8f8f2">split(darkHSV,</span> <span style="color: #f8f8f2">dark_hsv);</span>   <span style="color: #75715e">// 通道分离</span>
+
+<span style="color: #f8f8f2">String</span> <span style="color: #f8f8f2">c[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">&quot;H&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;S&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;V&quot;</span><span style="color: #f8f8f2">};</span> 
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;bright &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">c[i],</span> <span style="color: #f8f8f2">bright_hsv[i]);</span> 
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;dark &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">c[i],</span> <span style="color: #f8f8f2">dark_hsv[i]);</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">destroyAllWindows();</span>
+...</code>
+			
+			<pre style="text-align: center;"><img src="../Files/components-hsv.png" alt=""/><br>HSV颜色空间中的色相（H），饱和度（S）和值（V）分量</pre>
+			
+		  <h4>观察结果</h4>
+			两个图像中的H分量非常相似，这表明即使在光照变化下颜色信息也完整无缺。<br>
+			在两个图像中，S分量也非常相似。<br>
+			V分量捕获落在其上的光量，因此由于照明的变化而发生变化。<br>
+			室外红色图像和室内图像的红色值之间存在巨大差异。这是因为色相H为轮（0度到360度），红色表示起始角度。因此，它可能取[300，360]到[0，60]之间的值。<br><br><br>
+			
+			
+			<h3>LAB颜色空间</h3>
+			
+			<pre style="text-align: center;"><img src="../Files/cielab-color.jpg" alt=""/><br>LAB色彩空间</pre>
+			<pre><iframe src="lab_color_picker.html" style="width:calc(100% - 10px); height:200px; border:none; background: dimgray; border-radius: 6px; padding: 5px; "></iframe></pre>
+			
+			Lab颜色空间包含三个组成部分。
+			<ul>
+			<li>L –亮度（强度）。</li>
+			<li>a –颜色成分，从绿色到洋红色。</li>
+			<li>b –颜色成分，从蓝色到黄色。</li>
+			</ul>
+			Lab颜色空间与RGB颜色空间完全不同。在RGB颜色空间中，颜色信息分为三个通道，但是相同的三个通道中也包含亮度信息。而在Lab颜色空间中，L通道与颜色信息无关，并且仅包含亮度信息，其他两个通道对颜色进行编码。<br><br>
+
+			它具有以下属性。
+			<ul>
+			<li>感知均匀的色彩空间，近似我们对色彩的感知方式。</li>
+			<li>与设备无关（捕获或显示）。</li>
+			<li>在Adobe Photoshop中广泛使用。</li>
+			<li>通过复杂的转换方程与RGB颜色空间切换。</li>
+			</ul>
+			
+			<h4>取值范围</h4>
+			在OpenCV中，Lab的取值范围(默认的CV_8U格式)为：
+			<pre>0 &gt;= L &gt;= 100 ⇒ OpenCV range = L*255/100 (1 &gt;= <strong>L</strong> &gt;= 255)
+-127 &gt;= a &gt;= 127 ⇒ OpenCV range = a + 128 (1 &gt;= <strong>a</strong> &gt;= 255)
+-127 &gt;= b &gt;= 127 ⇒ OpenCV range = b + 128 (1 &gt;= <strong>b</strong> &gt;= 255)</pre>
+			
+			让我们查看Lab颜色空间中的两个图像，这些图像分为三个通道。
+			
+			<code><span class="white" style="margin-top: 0; ">analysis_lab.cpp</span>
+...
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">brightLAB,</span> <span style="color: #f8f8f2">darkLAB;</span> 
+
+<span style="color: #75715e">// 转换颜色空间</span>
+<span style="color: #f8f8f2">cvtColor(bright,</span> <span style="color: #f8f8f2">brightLAB,</span> <span style="color: #f8f8f2">COLOR_BGR2LAB);</span>
+<span style="color: #f8f8f2">cvtColor(dark,</span> <span style="color: #f8f8f2">darkLAB,</span> <span style="color: #f8f8f2">COLOR_BGR2LAB);</span> 
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">bright_lab[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span>  
+<span style="color: #f8f8f2">split(brightLAB,</span> <span style="color: #f8f8f2">bright_lab);</span>   <span style="color: #75715e">// 通道分离</span>
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">dark_lab[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span>  
+<span style="color: #f8f8f2">split(darkLAB,</span> <span style="color: #f8f8f2">dark_lab);</span>   <span style="color: #75715e">// 通道分离</span>
+
+<span style="color: #f8f8f2">String</span> <span style="color: #f8f8f2">c[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">&quot;L&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;a&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;b&quot;</span><span style="color: #f8f8f2">};</span> 
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;bright &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">c[i],</span> <span style="color: #f8f8f2">bright_lab[i]);</span> 
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;dark &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">c[i],</span> <span style="color: #f8f8f2">dark_lab[i]);</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">destroyAllWindows();
+...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/components-lab.png" alt=""/><br>LAB颜色空间中的亮度（L）和颜色分量（A，B）。</pre>
+			
+			<h4>观察结果</h4>
+			从图中可以很明显地看出，亮度的变化主要影响了L分量。<br>
+			包含颜色信息的A和B组件没有发生大的变化。<br>
+			在两图中，绿色、红色和橙色在B值上区别不大（而在A值上却是极端），蓝色和黄色在A值上区别不大（而在B值上却是极端）<br><br><br>
+			
+			<h3>YCrCb颜色空间</h3>
+			
+			<pre style="text-align: center;"><img src="../Files/300px-YCbCr-CbCr_Scaled_Y50.png" alt=""/><br>YCrCb颜色空间</pre>
+			
+			YCrCb颜色空间是从RGB颜色空间派生的，并且具有以下三个组件。
+			<ul>
+			<li>Y – 伽玛校正后从RGB获得的亮度或亮度分量（Lumaninance，Luma）。</li>
+			<li>Cr = R – Y（红色值距离Luma的多远）。</li>
+			<li>Cb = B – Y（蓝色值距离Luma的多远）。</li>
+			</ul>
+			<pre style="text-align: center;"><img src="../Files/rgb2ycrcb.png" alt="equation"/><br>RGB转换成YCrCb的方程</pre>
+			
+			此色彩空间具有以下属性。
+			<ul>
+			<li>将亮度和色度分量分成不同的通道。</li>
+			<li>通常用于电视传输的压缩（Cr和Cb成分）。</li>
+			<li>取决于设备。</li>
+			</ul>
+			YCrCb颜色空间中的两个图像分为两个通道，如下所示
+			
+			<code><span class="white" style="margin-top: 0; ">analysis_ycrcb.cpp</span>
+...
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">brightYCrCb,</span> <span style="color: #f8f8f2">darkYCrCb;</span> 
+
+<span style="color: #75715e">// 转换颜色空间</span>
+<span style="color: #f8f8f2">cvtColor(bright,</span> <span style="color: #f8f8f2">brightYCrCb,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span>
+<span style="color: #f8f8f2">cvtColor(dark,</span> <span style="color: #f8f8f2">darkYCrCb,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span> 
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">bright_ycrcb[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span>  
+<span style="color: #f8f8f2">split(brightYCrCb,</span> <span style="color: #f8f8f2">bright_ycrcb);</span>   <span style="color: #75715e">// 通道分离</span>
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">dark_ycrcb[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span>  
+<span style="color: #f8f8f2">split(darkYCrCb,</span> <span style="color: #f8f8f2">dark_ycrcb);</span>   <span style="color: #75715e">// 通道分离</span>
+
+<span style="color: #f8f8f2">String</span> <span style="color: #f8f8f2">c[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">&quot;Y&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Cr&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Cb&quot;</span><span style="color: #f8f8f2">};</span> 
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;bright &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">c[i],</span> <span style="color: #f8f8f2">bright_ycrcb[i]);</span> 
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;dark &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">c[i],</span> <span style="color: #f8f8f2">dark_ycrcb[i]);</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">destroyAllWindows();
+...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/components-ycrcb.png" alt=""/><br>YCrCb颜色空间中的亮度（Y）和色度（Cr，Cb）分量</pre>
+			
+			<h4>观察结果</h4>
+			和LAB一样，亮度Y会受到光线影响，而颜色成分Cr和Cb不会受到光线影响。<br>
+			与LAB相比，即使在室外图像中，红色和橙色之间的感知差异也较小。<br>
+			白色在三个颜色通道有不一样的值。<br><br><br>
+			
+			
+			<h3>灰度图(Grayscale)</h3>
+			单通道图像我们称为灰度图。它只包含图像的光度信息，并没有颜色信息。所以我们在显示灰度图时一定是只有“灰色”。<br>
+			我们可以一样使用cvtColor变换图像成灰度图。常用的用法为：
+			<code>cvtColor(img, gray, COLOR_BGR2GRAY); </code>
+			我们也可以在读取图像时先“下手为强”。可以在第二个参数填上IMREAD_GRAYSCALE或0，将会返回一个单通道灰度图。用法：<br>
+			<code><span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;path/to/img.jpg&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">IMREAD_GRAYSCALE);</span></code>
+			
+			<h4>取值范围</h4>
+			在OpenCV中，灰度图的取值范围(默认的CV_8U格式)为：<br>
+			<pre>0 ~ 255</pre><br>
+
+			</div>
+			<script type="text/javascript" src="../index.js"></script>
+		</body>
+	</html> 
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			

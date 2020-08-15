@@ -11,6 +11,25 @@
 		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
 	</head>
 	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
 		<div id="banner">OpenCV载入并显示图像</div>
 		<div class="content">
         	<h2 style="margin:5px 0px;">从文件载入并显示图像</h2>
@@ -53,7 +72,7 @@ int main(int argc, char** argv)
  return 0;
 }
             </pre>
-            
+            记得把"OpenCV_Logo.png"改为你的图像路径。<br>
             打开一个终端cd到你的工作文件夹(也可以用刚刚使用的终端)，输入以下命令编译并运行代码： 
             <pre>g++ -o main main.cpp `pkg-config --libs --cflags opencv`<br>./main</pre>
             <pre style="text-align:center; "><img src="../Files/imread.jpg" /></pre><br><br>
@@ -234,5 +253,6 @@ int main(int argc, char** argv)
 在上一节中，你学习了如何创建所需大小和类型的图像，并将所有像素初始化为指定值。
 </div>
         </pre>
+<script type="text/javascript" src="../index.js"></script>
 	</body>
 </html>

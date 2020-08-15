@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style>
+			body {
+				background: none; 
+				padding: 0px; 
+				margin: 0px; 
+			}
+			
+			.slidecontainer {
+			  width: calc(100% - 5px);
+			  margin: 0px; 
+			  height: 200px; 
+				vertical-align: middle; 
+				text-align: center; 
+			}
+
+			.hslider {
+			  -webkit-appearance: none;
+			  width: 100%;
+			  height: 25px;
+			  background: linear-gradient(to right,hsl(0,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(360,100%,50%));
+			  outline: none;
+			  margin-bottom: 10px; 
+				border-radius: 50px;  
+				border: 1px solid #282828; 
+				transition: all 0.2s; 
+			}
+
+			.hslider::-webkit-slider-thumb {
+			  -webkit-appearance: none;
+			  appearance: none;
+			  width: 30px;
+			  height: 30px;
+			  background: none; 
+			  border: 3px solid #282828; 
+			  box-shadow: 0 0 0 1px dimgray; 
+			  cursor: pointer;
+				border-radius: 50px; 
+			}
+
+			.hslider::-moz-range-thumb {
+			  width: 30px;
+			  height: 30px;
+			  background: none; 
+			  border: 3px solid #282828; 
+			  box-shadow: 0 0 0 1px dimgray; 
+			  cursor: pointer;
+				border-radius: 50px; 
+			}
+
+			.sslider {
+			  -webkit-appearance: none;
+			  display: block;
+			  width: 100%;
+			  height: 25px;
+			  background-image: linear-gradient(to right,#494949 0%,transparent 100%),linear-gradient(to right,#fff 0%,transparent 0%);
+			  background-color: red; 
+			  outline: none;
+			  margin-bottom: 10px; 
+				border-radius: 50px; 
+				border: 1px solid #282828; 
+				transition: all 0.2s; 
+			}
+
+			.sslider::-webkit-slider-thumb {
+			  -webkit-appearance: none;
+			  appearance: none;
+			  width: 30px;
+			  height: 30px;
+			  background: none; 
+			  border: 3px solid #282828; 
+			  box-shadow: 0 0 0 1px dimgray; 
+			  cursor: pointer;
+				border-radius: 50px; 
+			}
+
+			.sslider::-moz-range-thumb {
+			  width: 30px;
+			  height: 30px;
+			  background: none; 
+			  border: 3px solid #282828; 
+			  box-shadow: 0 0 0 1px dimgray; 
+			  cursor: pointer;
+				border-radius: 50px; 
+			}
+			
+			.vslider {
+			  -webkit-appearance: none;
+			  display: block;
+			  width: 100%;
+			  height: 25px;
+			  background-image: linear-gradient(to right,black,transparent 10%,white);
+			  background-color: red; 
+			  outline: none;
+			  margin-bottom: 10px; 
+				border-radius: 50px; 
+				border: 1px solid #282828; 
+				transition: all 0.2s; 
+			}
+
+			.vslider::-webkit-slider-thumb {
+			  -webkit-appearance: none;
+			  appearance: none;
+			  width: 30px;
+			  height: 30px;
+			  background: none; 
+			  border: 3px solid #282828; 
+			  box-shadow: 0 0 0 1px dimgray; 
+			  cursor: pointer;
+				border-radius: 50px; 
+			}
+
+			.vslider::-moz-range-thumb {
+			  width: 30px;
+			  height: 30px;
+			  background: none; 
+			  border: 3px solid #282828; 
+			  box-shadow: 0 0 0 1px dimgray; 
+			  cursor: pointer;
+				border-radius: 50px; 
+			}
+			
+			.color_block {
+				width: calc(100% + 1px); 
+				height: 50px; 
+				border-radius: 11px; 
+				border: 1px solid #282828; 
+				margin-left: 1px; 
+				color: white; 
+				font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, "sans-serif"; 
+				font-weight: bold; 
+				font-size: 115%; 
+				vertical-align: middle; 
+				text-align: center; 
+				transition: all 0.2s; 
+			}
+			
+			#demo {
+				text-shadow: -1px -1px 0 #282828, 1px -1px 0 #282828, -1px 1px 0 #282828, 1px 1px 0 #282828;
+			}
+		</style>
+		<script>
+			function lab2rgb(lab){
+			  var y = (lab[0] + 16) / 116,
+				  x = lab[1] / 500 + y,
+				  z = y - lab[2] / 200,
+				  r, g, b;
+
+			  x = 0.95047 * ((x * x * x > 0.008856) ? x * x * x : (x - 16/116) / 7.787);
+			  y = 1.00000 * ((y * y * y > 0.008856) ? y * y * y : (y - 16/116) / 7.787);
+			  z = 1.08883 * ((z * z * z > 0.008856) ? z * z * z : (z - 16/116) / 7.787);
+
+			  r = x *  3.2406 + y * -1.5372 + z * -0.4986;
+			  g = x * -0.9689 + y *  1.8758 + z *  0.0415;
+			  b = x *  0.0557 + y * -0.2040 + z *  1.0570;
+
+			  r = (r > 0.0031308) ? (1.055 * Math.pow(r, 1/2.4) - 0.055) : 12.92 * r;
+			  g = (g > 0.0031308) ? (1.055 * Math.pow(g, 1/2.4) - 0.055) : 12.92 * g;
+			  b = (b > 0.0031308) ? (1.055 * Math.pow(b, 1/2.4) - 0.055) : 12.92 * b;
+
+			  return [Math.max(0, Math.min(1, r)) * 255, 
+					  Math.max(0, Math.min(1, g)) * 255, 
+					  Math.max(0, Math.min(1, b)) * 255]
+			}
+
+
+			function rgb2lab(rgb){
+			  var r = rgb[0] / 255,
+				  g = rgb[1] / 255,
+				  b = rgb[2] / 255,
+				  x, y, z;
+
+			  r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+			  g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+			  b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+
+			  x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+			  y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
+			  z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+
+			  x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
+			  y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
+			  z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
+
+			  return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)]
+			}
+		</script>
+	</head>
+	<body>
+
+		<table class="slidecontainer">
+			<tr><td>
+		  	<input type="range" min="0" max="180" value="0" class="hslider" id="hrange">
+		  	<input type="range" min="0" max="255" value="255" class="sslider" id="srange">
+			<input type="range" min="0" max="255" value="128" class="vslider" id="vrange">
+			<table class="color_block" id="color_block">
+				<tr><td><font id="demo"></font></td></tr></table>
+			</td></tr>
+		</table>
+
+		<script>
+			var hslider = document.getElementById("hrange");
+			var sslider = document.getElementById("srange");
+			var vslider = document.getElementById("vrange");
+
+			var H = 0; 
+			var S = 100; 
+			var L = 50; 
+			var V = 50; 
+
+			function hsv_to_hsl(h, s, v) {
+				// both hsv and hsl values are in [0, 1]
+				var l = (2 - s) * v / 2;
+
+				if (l != 0) {
+					if (l == 1) {
+						s = 0
+					} else if (l < 0.5) {
+						s = s * v / (l * 2)
+					} else {
+						s = s * v / (2 - l * 2)
+					}
+				}
+
+				return [h, s*100, l*200]
+			}
+			
+			function update_color() {
+				document.getElementById("demo").innerHTML = " H:" + parseInt(H/2) + 
+															" S:" + parseInt(S/100*255) + 
+															" V:" + parseInt(V/100*255); 
+				document.getElementById("color_block").style.background = "hsl(" + H + ", " + S + "%, "+L+"%)"; 
+			}
+			
+			hslider.style.background = "linear-gradient(to right, hsl(0,"+S+"%,"+L+"%), hsl(60,"+S+"%,"+L+"%), hsl(120,"+S+"%,"+L+"%), hsl(180,"+S+"%,"+L+"%), hsl(240,"+S+"%,"+L+"%), hsl(300,"+S+"%,"+L+"%), hsl(360,"+S+"%,"+L+"%))"; 
+			sslider.style.backgroundColor = "hsl("+H+", 100%, "+L+"%)"; 
+			vslider.style.backgroundColor = "hsl("+H+", 100%, "+L+"%)"; 
+			
+			update_color(); 
+
+			hslider.oninput = function() {
+				  H = this.value * 2; 
+				  vslider.style.backgroundColor = "hsl(" + H + ", " + S + "%, 50%)"; 
+				  sslider.style.backgroundColor = "hsl(" + H + ", 100%, " + L + "%)"; 
+				  update_color(); 
+			}
+
+			sslider.oninput = function() {
+			  	HSL = hsv_to_hsl(H, this.value/255, vslider.value/255); 
+				S = HSL[1]; L = HSL[2]; V = vslider.value/255*100; 
+			  	hslider.style.background = "linear-gradient(to right, hsl(0,"+S+"%,"+L+"%), hsl(60,"+S+"%,"+L+"%), hsl(120,"+S+"%,"+L+"%), hsl(180,"+S+"%,"+L+"%), hsl(240,"+S+"%,"+L+"%), hsl(300,"+S+"%,"+L+"%), 	hsl(360,"+S+"%,"+L+"%))"; 
+				vslider.style.backgroundColor = "hsl("+H+", "+S+"%, 50%)"; 
+				update_color(); 
+			}
+			
+			vslider.oninput = function() {
+				  HSL = hsv_to_hsl(H, sslider.value/255, this.value/255); 
+				  S = HSL[1]; L = HSL[2]; V = vslider.value/255*100; 
+				  sslider.style.backgroundColor = "hsl("+H+", 100%, "+L+"%)"; 
+				  hslider.style.background = "linear-gradient(to right, hsl(0,"+S+"%,"+L+"%), hsl(60,"+S+"%,"+L+"%), hsl(120,"+S+"%,"+L+"%), hsl(180,"+S+"%,"+L+"%), hsl(240,"+S+"%,"+L+"%), hsl(300,"+S+"%,"+L+"%), 	hsl(360,"+S+"%,"+L+"%))"; 
+				update_color(); 
+			}
+		</script>
+
+	</body>
+</html>

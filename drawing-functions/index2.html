@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 绘画轮廓 / 多边形">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>绘画轮廓 / 多边形</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">绘画轮廓 / 多边形</div>
+		<div class="content">
+			
+			<h1>绘画轮廓 / 多边形</h1>
+			
+			绘画多边形我们一般使用drawContours()函数去绘出。不过其实drawContours()是配合findContours()使用的(后章我会说到)，也就是findContours()负责找出轮廓，然后drawContours()绘出。
+			
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>drawContours</strong>(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">image,</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span> <span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">contourIdx,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">color,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,]</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec4i</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">hierarchy</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">noArray(),]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">maxLevel</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">INT_MAX,]</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">offset</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Point())</span></code>
+			
+			<h3>参数</h3>
+			<pre>image —— 目标图像。
+contours —— 所有输入轮廓。每个轮廓都存储为点向量。
+contourIdx —— 指示要绘制轮廓的索值。如果为负，则绘制所有轮廓。
+color —— 轮廓的颜色。
+thickness —— 绘制轮廓的线的粗细。如果为负数 (例如，thickness=FILLED)，则绘制轮廓实心。
+lineType —— 线路连接。见上章line()
+hierarchy —— 有关层次结构的可选信息，轮廓之间的父子辈分关系，一般从findContours计算而出。仅当你只想绘制部分轮廓时才需要（请参见maxLevel）。
+maxLevel —— 绘制轮廓的最大水平。如果为0，则仅绘制指定的轮廓。如果为1，该函数将绘制轮廓和所有嵌套轮廓。如果为2，该函数将绘制轮廓，所有嵌套轮廓，所有嵌套到嵌套的轮廓，等等。仅当存在可用的层次结构时，才考虑此参数。
+offset —— 可选的轮廓偏移参数。将所有绘制的轮廓移动指定的offset =（dx，dy）。</pre>
+			
+			<code><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span> 
+<span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contour</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{Point(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">40</span><span style="color: #f8f8f2">),</span> 
+                         <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">160</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">80</span><span style="color: #f8f8f2">),</span>
+                         <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">170</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">140</span><span style="color: #f8f8f2">),</span>
+                         <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">90</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">130</span><span style="color: #f8f8f2">),</span> 
+                         <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">90</span><span style="color: #f8f8f2">)};</span> 
+<span style="color: #f8f8f2">contours.push_back(contour);</span> 
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #a6e22e">img</span><span style="color: #f8f8f2">(Size(</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">CV_8UC3,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">));</span> 
+<span style="color: #f8f8f2">drawContours(img,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">75</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">75</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+     
+<span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;img&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">img);</span> 
+<span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">destroyAllWindows();</span></code>
+			<pre style="text-align: center;"><img src="../Files/draw_contours_1.png" alt="contours"/></pre>
+			
+			
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

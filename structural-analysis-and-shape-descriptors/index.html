@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 轮廓检测">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>轮廓检测</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">轮廓检测</div>
+		<div class="content">
+			
+			<h1>轮廓检测</h1>
+			
+			<pre style="text-align: center;"><img src="../Files/find_contours_example_1.jpg" alt="example"/></pre>
+			<pre style="text-align: center;"><img src="../Files/find_contours_example_2.jpg.png" alt="example"/></pre>
+			
+			轮廓可以简单地解释为连接具有相同颜色或相近像素值所有连续点（沿边界）的曲线。轮廓是用于形状分析以及对象检测和识别的有用工具。<br><br>
+
+			<h2>基本流程</h2>
+			<pre style="text-align: center;"><img src="../Files/find_contours_flowchart.png" alt="chart"/></pre>
+			
+			为了获得更高的准确性，请使用二进制图像。因此，在找到轮廓之前，请应用阈值或Canny边缘检测。<br>
+
+			在OpenCV中，找到轮廓就像从黑色背景中找到白色物体。因此请记住，要找到的对象应该是白色，背景应该是黑色。<br><br>
+			
+			<h2>findContours()</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>findContours</strong>(Mat</span> <span style="color: #f8f8f2">image,</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec4i</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">hierarchy,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">mode,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">method, ]</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">offset</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Point())</span></code>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>findContours</strong>(Mat</span> <span style="color: #f8f8f2">image,</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">mode,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">method, ]</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">offset</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Point())</span></code>
+			
+			<h3>参数</h3>
+			<pre>
+<strong>image</strong>     —— 源输入，一个8位单通道图像。非零像素被视为1。零像素保持为0，因此图像被视为binary。
+             你可以使用compare，inRange，threshold，adaptiveThreshold，Canny和其他方式
+             创建灰度或彩色的二进制图像。
+             如果mode等于RETR_CCOMP或RETR_FLOODFILL，则输入也可以是标签（CV_32SC1）的32位整数图像。
+<strong>contours</strong>  —— 输出，检测到的轮廓。每个轮廓都存储为点的向量（例<span style="color: #f8f8f2">std</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">std</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span>）
+<strong>hierarchy</strong> —— 可选的输出向量（例<span style="color: #f8f8f2">std</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Vec4i</span><span style="color: #f92672">&gt;</span>），其中包含有关图像拓扑的信息。
+             它具有与轮廓数量一样多的元素。（后章细谈）
+<strong>mode</strong>      —— 轮廓检索模式，请参阅RetrievalModes
+<strong>method</strong>    —— 轮廓近似方法，请参见ContourApproximationModes
+<strong>offset</strong>    —— 可选偏移量，每个轮廓点都将偏移该偏移量。如果从图像ROI中提取轮廓，
+             然后在整个图像上下文中对其进行分析，这将非常有用 offset=(dx, dy)</pre>
+			
+			<h3>枚举类</h3>
+			<h4>RetrievalModes</h4>
+			<pre>
+<strong>RETR_EXTERNAL</strong>   仅检测最外部轮廓。
+<strong>RETR_LIST</strong>       检索所有轮廓，而不建立任何层次关系。
+<strong>RETR_CCOMP</strong>      检索所有轮廓并将其组织为两级层次结构。
+                第一层，组件由图像每个形状(白色)的外部边界组成。在第二层，由孔洞(黑色)的边界组成。
+                如果所连接零部件的孔内还有其他轮廓(白色)，则该轮廓仍放在第一层。
+<strong>RETR_TREE</strong>       检索所有轮廓，并重建嵌套轮廓的完整层次。</pre> 
+			<pre style="text-align: center;"><img src="../Files/find_contours_external.png" width="100%" style="max-height:none;" alt="external"/><br>RETR_EXTERNAL</pre>
+			<pre style="text-align: center;"><img src="../Files/find_contours_tree_list.png" width="100%" style="max-height:none;" alt="external"/><br>RETR_LIST/RETR_TREE/RETR_CCOMP 唯独hierarchy的值不一样</pre>
+			
+			
+			<h4>ContourApproximationModes</h4>
+			<pre>
+<strong>CHAIN_APPROX_NONE</strong>   存储所有轮廓点。
+<strong>CHAIN_APPROX_SIMPLE</strong> 压缩水平，垂直和对角线段，仅保留其端点。例如，一个直立的矩形轮廓编码有4个点。</pre>
+			<pre style="text-align: center;"><img src="../Files/find_contours_method.jpg" alt="method"/><br>左：CHAIN_APPROX_NONE(几百个点描述); 右：CHAIN_APPROX_SIMPLE(4个点描述)</pre><br><br><br>
+			
+			<h2>例子</h2>
+			我们将使用Canny边缘检测为例，findContours()后drawContours()显示轮廓。<a href="https://docs.opencv.org/3.4/df/d0d/tutorial_find_contours.html">来源</a>
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;iostream&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span>
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src_gray;</span>
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thresh</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">100</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">RNG</span> <span style="color: #a6e22e">rng</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">12345</span><span style="color: #f8f8f2">);</span>
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">thresh_callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">);</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;HappyFish.jpg&quot;</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #66d9ef">if</span><span style="color: #f8f8f2">(</span> <span style="color: #f8f8f2">src.empty()</span> <span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+      <span style="color: #f8f8f2">cout</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;Could not open or find the image!</span><span style="color: #ae81ff">\n</span><span style="color: #e6db74">&quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">endl;</span>
+      <span style="color: #66d9ef">return</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">cvtColor(</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">src_gray,</span> <span style="color: #f8f8f2">COLOR_BGR2GRAY</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">blur(</span> <span style="color: #f8f8f2">src_gray,</span> <span style="color: #f8f8f2">src_gray,</span> <span style="color: #f8f8f2">Size(</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #66d9ef">const</span> <span style="color: #66d9ef">char</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">source_window</span> <span style="color: #f92672">=</span> <span style="color: #e6db74">&quot;Source&quot;</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">namedWindow(</span> <span style="color: #f8f8f2">source_window</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">imshow(</span> <span style="color: #f8f8f2">source_window,</span> <span style="color: #f8f8f2">src</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #66d9ef">const</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">max_thresh</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">createTrackbar(</span> <span style="color: #e6db74">&quot;Canny thresh:&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">source_window,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">max_thresh,</span> <span style="color: #f8f8f2">thresh_callback</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">thresh_callback(</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">waitKey();</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">thresh_callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">canny_output;</span>
+    <span style="color: #f8f8f2">Canny(</span> <span style="color: #f8f8f2">src_gray,</span> <span style="color: #f8f8f2">canny_output,</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">thresh</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span>
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec4i</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">hierarchy;</span>
+    <span style="color: #f8f8f2">findContours(</span> <span style="color: #f8f8f2">canny_output,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">hierarchy,</span> <span style="color: #f8f8f2">RETR_TREE,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">drawing</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Mat</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">zeros(</span> <span style="color: #f8f8f2">canny_output.size(),</span> <span style="color: #f8f8f2">CV_8UC3</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #66d9ef">for</span><span style="color: #f8f8f2">(</span> <span style="color: #66d9ef">size_t</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span> <span style="color: #f8f8f2">contours.size();</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span> <span style="color: #f8f8f2">)</span>
+    <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">color</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">256</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">);</span>
+        <span style="color: #f8f8f2">drawContours(</span> <span style="color: #f8f8f2">drawing,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">)i,</span> <span style="color: #f8f8f2">color,</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">LINE_8,</span> <span style="color: #f8f8f2">hierarchy,</span> <span style="color: #ae81ff">0</span> <span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">imshow(</span> <span style="color: #e6db74">&quot;Contours&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">drawing</span> <span style="color: #f8f8f2">);</span>
+<span style="color: #f8f8f2">}</span></code>
+			<pre style="text-align: center;"><img src="../Files/Find_Contours_Original_Image.jpg" alt="result"/><br><img src="../Files/Find_Contours_Result.jpg" alt="result"/></pre>
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

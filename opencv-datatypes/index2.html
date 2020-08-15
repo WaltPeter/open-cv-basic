@@ -11,6 +11,25 @@
 		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
 	</head>
 	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
 		<div id="banner">OpenCV数据类型（下）</div>
 		<div class="content">
 			
@@ -40,6 +59,7 @@
 
 			<!--Ptr&lt;&gt;中最后一个要了解的成员是delete_obj()。这是一个引用计数为零时自动调用的函数。默认情况下，这个函数定义了但不做任何事情。这样你就可以在实例化指向一个需要一些特定操作来清除指向的类对象的cv::Ptr&lt;&gt;时重载该函数。举个例子，假设你在使用旧类型的（2.1版本以前）的IplImage。-->
 			
-		</div> 
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
 	</body>
 </html>

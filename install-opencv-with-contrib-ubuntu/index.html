@@ -11,6 +11,25 @@
 		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
 	</head>
 	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
 		<div id="banner">【小白用】在Ubuntu上安装OpenCV任何版本+Contrib库+CUDA兼容 </div>
 		<div class="content">
 			
@@ -18,7 +37,7 @@
 			
 			各位小伙伴们好。时隔上次更新已经很久了呀。看了看我之前的OpenCV安装教程视频总感觉不是很完整，评论区也有人问contrib如何安。这次更新是*尝试*使得更完善吧。嘛，本人现在并不在国内，不知道小伙伴们会不会遇到被墙的问题呢（如有通报我）。<br><br>
 			
-			<iframe src="https://player.bilibili.com/player.html?aid=68562789&cid=118825962&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" class="note" style="height:50vw;"></iframe>
+<!--			<iframe src="https://player.bilibili.com/player.html?aid=68562789&cid=118825962&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" class="note" style="height:50vw;"></iframe>-->
 			
 			<h2>0.介绍</h2> 
 			这里先很简短的介绍。<br><br>
@@ -34,8 +53,23 @@
 			OpenCV Contrib库是非官方的第三方开发扩充库。通过这个库，我们能使用如dnn、相机标注、3D成像、ArUco、物体追踪，甚至是需付费的SURF、SIFT特征点提取算法。<br><br>
 			
 			<h2>1.准备</h2>
-			这里我默认你：
-			<pre>1. 使用Ubuntu（这里使用18.04，其他版本操作其实差别不大）. <br>2. 计算机拥有NVidia CUDA GPU. <br>3. 已安装对应版本的CUDA和cuDNN. </pre>
+			这里是本文默认的：
+			<pre>1. 使用Ubuntu（这里使用16.04，其他版本操作其实差别不大）. <br>2. 计算机拥有NVidia CUDA GPU. <br>3. 已安装对应版本的CUDA和cuDNN. </pre>
+			
+			<h3>解决无法从github下载问题</h3>
+			由于国内网络限制，有时会碰到GitHub资源下载超时问题。对策是在host文件添加一行语句。<br>
+			打开终端，
+			<pre>sudo gedit /etc/hosts</pre>
+			以上命令使用gedit打开了host文件。<br>
+			在host文件的最后添加一行: 
+			<pre>151.101.76.133 github-com.s3.amazonaws.com</pre>希望这一步能解决接下来的下载问题。<br><br>
+			
+			<h3>Apt-get安装下载缓慢</h3>
+			如果使用Ubuntu默认的下载源可能比较慢，建议在设置内切换到清华源或是中科院源。<br>
+			搜索software & updates<br>
+			<pre style="text-align: center;"><img src="../Files/change_source_ubuntu.png"/></pre>
+			1.选择国内源，2.关闭。关闭后会自动有一系列的更新，稍等。<br><br>
+			
 			
 			<h2>2.安装</h2>
 			<h3>安装依赖包裹</h3>
@@ -49,8 +83,6 @@ sudo apt-get install libv4l-dev libxvidcore-dev libx264-dev
 sudo apt-get install libgtk-3-dev
 sudo apt-get install libatlas-base-dev gfortran
 sudo apt-get install python3-dev</pre>
-			
-			如果使用Ubuntu默认的下载源可能比较慢，建议在设置内切换到清华源。<br><br>
 			
 			<h3>下载OpenCV源代码</h3>
 			接下来我们下载OpenCV的源代码。这是因为如果要配置CUDA支持，OpenCV并没有提供现成直接安装的包裹（C++版也是如此，不像Python的能直接pip install），我们必须先下载源代码，然后cmake编译后安装。<br><br>
@@ -152,6 +184,45 @@ cd build</pre>
 			CUDA_ARCH_BIN项的GPU框架版本号很重要，因为如果这个值填错，使用dnn模块时可能会出现以下问题：
 			<pre>cv2.error: OpenCV(4.2.0) /home/waltpeter/opencv/modules/dnn/src/cuda/execution.hpp:52: error: (-217:Gpu API call) invalid device function in function 'make_policy'</pre><br> 
 			
+			<div class="note" style="background-color: tomato;"><b>CMake出现下载错误</b>
+				<div class="note" style="background: #404040; font-family: Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, 'sans-serif'; ">
+					<h3>Bug1: xfeatures2d/boostdesc boostdesc_bgm_hd.i 无法下载问题</h3>
+					仔细查看CMake的输出。你可能看到*类似*以下的报错：
+					<pre>CMake Warning at cmake/OpenCVDownload.cmake:188 (message):
+  xfeatures2d/boostdesc: Download failed: 1;"Unsupported protocol"
+
+  For details please refer to the download log file:
+
+  /root/opencv/build/CMakeDownloadLog.txt
+
+Call Stack (most recent call first):
+  opencv_contrib/modules/xfeatures2d/cmake/download_boostdesc.cmake:22 (ocv_download)
+  opencv_contrib/modules/xfeatures2d/CMakeLists.txt:8 (download_boost_descriptors)
+
+
+-- xfeatures2d/boostdesc: Download: boostdesc_bgm_bi.i
+CMake Warning at cmake/OpenCVDownload.cmake:188 (message):
+  xfeatures2d/boostdesc: Download failed: 1;"Unsupported protocol"
+
+  For details please refer to the download log file:
+
+  /root/opencv/build/CMakeDownloadLog.txt
+
+Call Stack (most recent call first):
+  opencv_contrib/modules/xfeatures2d/cmake/download_boostdesc.cmake:22 (ocv_download)
+  opencv_contrib/modules/xfeatures2d/CMakeLists.txt:8 (download_boost_descriptors)
+
+
+-- xfeatures2d/boostdesc: Download: boostdesc_bgm_hd.i
+CMake Warning at cmake/OpenCVDownload.cmake:188 (message):
+  xfeatures2d/boostdesc: Download failed: 1;"Unsupported protocol"</pre><br>
+					<h3>Bug2: ippicv_linux_* 下载失败</h3>
+					你也可能看到*类似*这个报错：
+					<pre>-- ICV: Downloading ippicv_linux_20151201.tgz... CMake Error at 3rdparty/ippicv/downloader.cmake:73 (file): file DOWNLOAD HASH mismatch</pre>
+					
+				</div>
+			</div>
+			
 			然后，编译： 
 			<pre>make -j8</pre>
 			记得取代'8'为你的CPU内核数。<br><br>
@@ -232,5 +303,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 			切换到你的虚拟环境中（我的是opencv_cuda）。在输入"python"命令，打开了python的交流模式。在python下import cv2，也就是导入opencv库，然后cv2.__version__质询opencv版本。
 			
 			</div>
+		<script type="text/javascript" src="../index.js"></script> 
+		
 	</body> 
 </html>

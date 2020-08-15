@@ -1,0 +1,342 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Linux 下安装 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>使用色彩空间分割图像</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">使用色彩空间分割图像</div>
+		<div class="content">
+			
+			<h1>使用色彩空间分割图像</h1>
+			上一章我们学会了不同颜色空间的定义和特性。我们一样使用以下例子，但这次我们会使用颜色空间进行阈值式的图像分割。
+			
+			<code><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">bright</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;cube1.jpg&quot;</span><span style="color: #f8f8f2">);</span><br><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">dark</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;cube8.jpg&quot;</span><span style="color: #f8f8f2">);</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/two-cubes.png" alt=""/><br>两张在不同明亮度拍摄的魔方照片</pre><br><br>
+			
+			
+			<h2>如何使用这些色彩空间进行图像切分</h2>
+			<h3>最简单的方法</h3>
+			现在我们对不同的色彩空间有了一些了解，让我们首先尝试使用它们从图像数据中检测绿色。
+
+		  <h4>步骤1：获取特定颜色的颜色值</h4>
+			可能你在想，如果我们要在图像中找绿色，我们首先得知道绿色像素的像素值。那你就对了！首先我们确实是要知道他的像素值。<br>
+			为此，我制作了一个交互式GUI，你可以通过将鼠标悬停在图像上来检查每个像素的所有颜色空间的值，如下所示：
+			
+		  <pre style="text-align: center;"><img src="../Files/color_picker.png" alt=""/><br>该演示在户外图像的不同颜色空间中显示像素及其值</pre>
+			
+			<pre style="overflow-x: scroll; padding:0; "><code style="width:1500px; margin:0;"><span class="white" style="margin-top: 0; ">color_picker.cpp</span>
+<span style="color: #75715e">#include &lt;string&gt;</span>
+<span style="color: #75715e">#include &lt;iostream&gt; </span>
+<span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">onMouseHandle</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">event,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">x,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">y,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">flags,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">param);</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">argc,</span> <span style="color: #66d9ef">char</span> <span style="color: #f92672">**</span> <span style="color: #f8f8f2">argv)</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">srcImage</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(argv[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]);</span>
+    
+    <span style="color: #75715e">//设置鼠标操作回调函数</span>
+    <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;color picker&quot;</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">setMouseCallback(</span><span style="color: #e6db74">&quot;color picker&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">onMouseHandle,</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">srcImage);</span> 
+
+    <span style="color: #75715e">//</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;color picker&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">srcImage);</span> 
+    <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">onMouseHandle</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">event,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">x,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">y,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">flags,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">param)</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">image</span> <span style="color: #f92672">=</span> <span style="color: #f92672">*</span><span style="color: #f8f8f2">(Mat</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">param;</span>
+    <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(event</span> <span style="color: #f92672">==</span> <span style="color: #f8f8f2">CV_EVENT_MOUSEMOVE)</span> <span style="color: #f8f8f2">{</span>   <span style="color: #75715e">//鼠标移动消息</span>
+        <span style="color: #f8f8f2">Vec3b</span> <span style="color: #f8f8f2">bgr_pixel(image.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(y,x));</span> 
+        <span style="color: #f8f8f2">Mat3b</span> <span style="color: #f8f8f2">bgr(bgr_pixel);</span> 
+
+        <span style="color: #75715e">//从BGR转换成HSV,YCrCb,Lab</span>
+        <span style="color: #f8f8f2">Mat3b</span> <span style="color: #f8f8f2">hsv,ycb,lab;</span>
+        <span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">ycb,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span>
+        <span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">hsv,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span> 
+        <span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">lab,</span> <span style="color: #f8f8f2">COLOR_BGR2Lab);</span>
+
+        <span style="color: #75715e">//从Mat得回Vec</span>
+        <span style="color: #f8f8f2">Vec3b</span> <span style="color: #f8f8f2">hsv_pixel(hsv.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+        <span style="color: #f8f8f2">Vec3b</span> <span style="color: #f8f8f2">ycb_pixel(ycb.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+        <span style="color: #f8f8f2">Vec3b</span> <span style="color: #f8f8f2">lab_pixel(lab.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+
+        <span style="color: #75715e">//显示结果</span>
+        <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">canvas(max(image.size().height,</span> <span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">image.size().width</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">600</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">CV_8UC3,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>  <span style="color: #75715e">//创建空Mat</span>
+        <span style="color: #f8f8f2">image.copyTo(canvas(Rect(Point(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">image.size())));</span>  <span style="color: #75715e">//把图像复制到canvas的左边</span>
+        <span style="color: #f8f8f2">rectangle(canvas,</span> <span style="color: #f8f8f2">Point(x</span><span style="color: #f92672">-</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,y</span><span style="color: #f92672">-</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(x</span><span style="color: #f92672">+</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,y</span><span style="color: #f92672">+</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">//显示当前像素位置</span>
+        <span style="color: #75715e">//显示像素值</span>
+        <span style="color: #f8f8f2">putText(canvas,</span> <span style="color: #e6db74">&quot;BGR: (&quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(bgr_pixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(bgr_pixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(bgr_pixel[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;)&quot;</span><span style="color: #f8f8f2">,</span> 
+                <span style="color: #f8f8f2">Point(image.size().width</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">20</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+        <span style="color: #f8f8f2">putText(canvas,</span> <span style="color: #e6db74">&quot;HSV: (&quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(hsv_pixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(hsv_pixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(hsv_pixel[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;)&quot;</span><span style="color: #f8f8f2">,</span> 
+                <span style="color: #f8f8f2">Point(image.size().width</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">20</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+        <span style="color: #f8f8f2">putText(canvas,</span> <span style="color: #e6db74">&quot;YCrCb: (&quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(ycb_pixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(ycb_pixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(ycb_pixel[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;)&quot;</span><span style="color: #f8f8f2">,</span> 
+                <span style="color: #f8f8f2">Point(image.size().width</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">20</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+        <span style="color: #f8f8f2">putText(canvas,</span> <span style="color: #e6db74">&quot;Lab: (&quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(lab_pixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(lab_pixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;, &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(lab_pixel[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #e6db74">&quot;)&quot;</span><span style="color: #f8f8f2">,</span> 
+                <span style="color: #f8f8f2">Point(image.size().width</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">20</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+        <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;color picker&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">canvas);</span> 
+    <span style="color: #f8f8f2">}</span>
+<span style="color: #f8f8f2">}</span></code></pre>
+			<div class="note">备注：<br>
+				以上代码使用了c++11标准编程，在g++编译的时候必须添加“标准”tag，即：<br>
+				<pre>g++ -o main color_picker.cpp `pkg-config --libs --cflags opencv` -std=c++11</pre><br>
+				然后<br>
+				<pre>./main [到图像的路径]</pre>运行。
+			</div><br><br>
+
+			
+		  <h4>第2步：应用细分阈值</h4>
+			得到了颜色的像素值，可能你会想用这个像数值在整个图像的每一个像素，判断那个像素的值是不是和颜色的像数值一样。但现实情况并不是那么理想。同样的颜色，即使肉眼看似它们没什么差别，但是由于光线或设备的影响它们的像素值还是有一定差别的。面对这种情况，第一时间你想到的或许是与其判断像素值是不是一样，倒不如我们设一个“邻近范围”，在范围内的像素都判断为吻合。我们来测试下结果：<br>
+			在下面这个测试中，我为每个色彩空间采用+/- 40的范围，并检查结果。我们将使用opencv中的inRange函数过滤出在范围中的绿色像素蒙版，然后使用bitwise_and操作使用该蒙版从图像中获取绿色像素。<br><br>
+			
+			<pre style="overflow-x: scroll; padding:0; "><code style="width:1100px; margin:0;"><span class="white" style="margin-top: 0; ">inrange_1.cpp</span>
+...
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">bgrPixel</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">40</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">158</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">16</span><span style="color: #f8f8f2">);</span>
+<span style="color: #75715e">// Create Mat object from vector since cvtColor accepts a Mat object</span>
+<span style="color: #f8f8f2">Mat3b</span> <span style="color: #a6e22e">bgr</span> <span style="color: #f8f8f2">(bgrPixel);</span>
+  
+<span style="color: #75715e">//Convert pixel values to other color spaces.</span>
+<span style="color: #f8f8f2">Mat3b</span> <span style="color: #f8f8f2">hsv,ycb,lab;</span>
+<span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">ycb,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span>
+<span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">hsv,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span>
+<span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">lab,</span> <span style="color: #f8f8f2">COLOR_BGR2Lab);</span>
+<span style="color: #75715e">//Get back the vector from Mat</span>
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">hsvPixel</span><span style="color: #f8f8f2">(hsv.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">ycbPixel</span><span style="color: #f8f8f2">(ycb.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">labPixel</span><span style="color: #f8f8f2">(lab.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+  
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thresh</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">40</span><span style="color: #f8f8f2">;</span>
+  
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minBGR</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(bgrPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> 
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxBGR</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(bgrPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+  
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">maskBGR,</span> <span style="color: #f8f8f2">resultBGR;</span>
+<span style="color: #f8f8f2">inRange(bright,</span> <span style="color: #f8f8f2">minBGR,</span> <span style="color: #f8f8f2">maxBGR,</span> <span style="color: #f8f8f2">maskBGR);</span>
+<span style="color: #f8f8f2">bitwise_and(bright,</span> <span style="color: #f8f8f2">bright,</span> <span style="color: #f8f8f2">resultBGR,</span> <span style="color: #f8f8f2">maskBGR);</span>
+  
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minHSV</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(hsvPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">hsvPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">hsvPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> 
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxHSV</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(hsvPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">hsvPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">hsvPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+  
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">maskHSV,</span> <span style="color: #f8f8f2">resultHSV;</span>
+<span style="color: #f8f8f2">inRange(brightHSV,</span> <span style="color: #f8f8f2">minHSV,</span> <span style="color: #f8f8f2">maxHSV,</span> <span style="color: #f8f8f2">maskHSV);</span>
+<span style="color: #f8f8f2">bitwise_and(brightHSV,</span> <span style="color: #f8f8f2">brightHSV,</span> <span style="color: #f8f8f2">resultHSV,</span> <span style="color: #f8f8f2">maskHSV);</span>
+  
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minYCrCb</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(ycbPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">ycbPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">ycbPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> 
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxYCrCb</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(ycbPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">ycbPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">ycbPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+  
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">maskYCrCb,</span> <span style="color: #f8f8f2">resultYCrCb;</span>
+<span style="color: #f8f8f2">inRange(brightYCrCb,</span> <span style="color: #f8f8f2">minYCrCb,</span> <span style="color: #f8f8f2">maxYCrCb,</span> <span style="color: #f8f8f2">maskYCrCb);</span>
+<span style="color: #f8f8f2">bitwise_and(brightYCrCb,</span> <span style="color: #f8f8f2">brightYCrCb,</span> <span style="color: #f8f8f2">resultYCrCb,</span> <span style="color: #f8f8f2">maskYCrCb);</span>
+  
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minLAB</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(labPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">labPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">labPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> 
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxLAB</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(labPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">labPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">labPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+  
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">maskLAB,</span> <span style="color: #f8f8f2">resultLAB;</span>
+<span style="color: #f8f8f2">inRange(brightLAB,</span> <span style="color: #f8f8f2">minLAB,</span> <span style="color: #f8f8f2">maxLAB,</span> <span style="color: #f8f8f2">maskLAB);</span>
+<span style="color: #f8f8f2">bitwise_and(brightLAB,</span> <span style="color: #f8f8f2">brightLAB,</span> <span style="color: #f8f8f2">resultLAB,</span> <span style="color: #f8f8f2">maskLAB);</span>
+  
+<span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Result BGR&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">resultBGR);</span>
+<span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Result HSV&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">resultHSV);</span>
+<span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Result YCrCb&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">resultYCrCb);</span>
+<span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Output LAB&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">resultLAB);</span>
+...</code></pre>
+			<h4>解释：</h4>
+		    <code><span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">bgrPixel</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">40</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">158</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">16</span><span style="color: #f8f8f2">);</span></code>
+			这行是之前我们得到的颜色像数值。类型为一个3字节的vector（相当于CV_8U类型内的一个像素，但是是1D）
+			
+			<code><span style="color: #f8f8f2">Mat3b</span> <span style="color: #a6e22e">bgr</span> <span style="color: #f8f8f2">(bgrPixel);</span>
+  
+<span style="color: #75715e">//Convert pixel values to other color spaces.</span>
+<span style="color: #f8f8f2">Mat3b</span> <span style="color: #f8f8f2">hsv,ycb,lab;</span>
+<span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">ycb,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span>
+<span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">hsv,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span>
+<span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">lab,</span> <span style="color: #f8f8f2">COLOR_BGR2Lab);</span>
+<span style="color: #75715e">//Get back the vector from Mat</span>
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">hsvPixel</span><span style="color: #f8f8f2">(hsv.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">ycbPixel</span><span style="color: #f8f8f2">(ycb.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+<span style="color: #f8f8f2">Vec3b</span> <span style="color: #a6e22e">labPixel</span><span style="color: #f8f8f2">(lab.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span></code>
+			由于cvtColor()函数只能输入Mat类型，所以我们先把1D的bgrPixel转换成Mat，然后再用cvtColor()函数算出对应的HSV,YCrCb和Lab数值。然后又再把Mat类型换回Vec3b类型。
+			
+			<code><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thresh</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">40</span><span style="color: #f8f8f2">;</span></code>
+			这里设置了可允许的范围为+/-40。只要输入像素的每个通道值在目标颜色值左右40的都算它吻合。
+			
+			<code><span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minBGR</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(bgrPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> 
+<span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxBGR</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(bgrPixel.val[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">bgrPixel.val[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+  
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">maskBGR,</span> <span style="color: #f8f8f2">resultBGR;</span>
+<span style="color: #f8f8f2">inRange(bright,</span> <span style="color: #f8f8f2">minBGR,</span> <span style="color: #f8f8f2">maxBGR,</span> <span style="color: #f8f8f2">maskBGR);</span>
+<span style="color: #f8f8f2">bitwise_and(bright,</span> <span style="color: #f8f8f2">bright,</span> <span style="color: #f8f8f2">resultBGR,</span> <span style="color: #f8f8f2">maskBGR);</span></code>
+			
+			inRange()函数需要我们设定一个上限和下限值，两个都是Scalar类型。所以我们先从目标像素值中计算出上限和下限。然后使用inRange()函数，输出蒙版到maskBGR. 因为蒙版是个二进制的矩阵，他只告诉你哪个位置的像素在范围内与相反，为了达到“分割原图”的功效，我们加个和运算(bitwise_and)。<br><br>
+			<h4>效果分析</h4>
+			我们先分割第一张图像
+			<pre style="text-align: center;"><img src="../Files/initial-result-r8-e1493878039950.jpg" alt=""/><br>每个颜色空间的效果都还算满意</pre>
+			接下来我们测试较暗的照片
+			<pre style="text-align: center;"><img src="../Files/initial-result-r1-e1493877950682.jpg" alt=""/><br>使用相同的阈值，可见每个颜色空间都无法检测所有颜色空间中的绿色像素。</pre>
+			
+			因此，相同的阈值不适用于较暗的图像。<br>进行相同的实验以检测黄色，得出以下结果。
+			
+			<pre style="text-align: center;"><img src="../Files/initial-result-yellow-r8-e1493878711537.jpg" alt=""/><br>尝试使用相同的手法从较亮图像获得的阈值（对于黄色）检测图中黄色像素。HSV和YCrCb仍然表现不佳。</pre>
+			<pre style="text-align: center;"><img src="../Files/initial-result-yellow-r1-e1493878730736.jpg" alt=""/><br>尝试使用相同的阈值检测黄色碎片，所有颜色空间再次失败。</pre>
+			
+			但是为什么结果这么差呢？ 这是因为我们对阈值进行了疯狂的猜测（设置为40）。我们不能只是盲目地尝试和尝试一些门槛。我们这样做并不是在利用色彩空间的力量。<br><br>
+
+			我们需要有一些系统性的方法来找到正确的阈值。<br><br>
+			
+			<h3>第3步：细调阈值</h3>
+			使用滚动条方式细调阈值已达最好效果。
+			
+			
+			<pre style="text-align: center;"><img src="../Files/demo2-e1493880025652.png" alt=""/></pre>
+			
+			<pre style="overflow-x: scroll; padding:0; "><code style="width:1100px; margin:0;"><span class="white" style="margin-top: 0; ">inrange_slider.cpp</span>
+<span style="color: #75715e">#include &lt;string&gt; </span>
+<span style="color: #75715e">#include &lt;vector&gt;</span>
+<span style="color: #75715e">#include &lt;iostream&gt;</span>
+<span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Mat</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">srcImages;</span> 
+<span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">int</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">minRange,</span> <span style="color: #f8f8f2">maxRange;</span> 
+<span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">String</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">colorSpaceName,</span> <span style="color: #f8f8f2">channelName;</span> 
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span><span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">);</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #75715e">// 所有图像路径并读取</span>
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">String</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">imgPaths{</span><span style="color: #e6db74">&quot;./Pictures/cube1.png&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;./Pictures/cube2.png&quot;</span><span style="color: #f8f8f2">};</span> 
+    <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #f8f8f2">imgPaths.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">srcImages.push_back(imread(imgPaths[i]));</span> 
+    <span style="color: #f8f8f2">}</span>
+
+    <span style="color: #75715e">// 获取初始范围值</span>
+    <span style="color: #f8f8f2">Mat3b</span> <span style="color: #f8f8f2">bgr(Vec3b(</span><span style="color: #ae81ff">40</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">158</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">16</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//Convert pixel values to other color spaces.</span>
+    <span style="color: #f8f8f2">Mat3b</span> <span style="color: #f8f8f2">hsv,</span> <span style="color: #f8f8f2">ycb,</span> <span style="color: #f8f8f2">lab;</span>
+    <span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">ycb,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span>
+    <span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">hsv,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span>
+    <span style="color: #f8f8f2">cvtColor(bgr,</span> <span style="color: #f8f8f2">lab,</span> <span style="color: #f8f8f2">COLOR_BGR2Lab);</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thresh</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">40</span><span style="color: #f8f8f2">;</span> 
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">int</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">minBGR,</span> <span style="color: #f8f8f2">maxBGR,</span> <span style="color: #f8f8f2">minHSV,</span> <span style="color: #f8f8f2">maxHSV,</span> <span style="color: #f8f8f2">minYCrCb,</span> <span style="color: #f8f8f2">maxYCrCb,</span> <span style="color: #f8f8f2">minLab,</span> <span style="color: #f8f8f2">maxLab;</span> 
+    <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">minBGR.push_back</span>  <span style="color: #f8f8f2">(bgr.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> <span style="color: #f8f8f2">maxBGR.push_back</span>  <span style="color: #f8f8f2">(bgr.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+        <span style="color: #f8f8f2">minHSV.push_back</span>  <span style="color: #f8f8f2">(hsv.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> <span style="color: #f8f8f2">maxHSV.push_back</span>  <span style="color: #f8f8f2">(hsv.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+        <span style="color: #f8f8f2">minYCrCb.push_back(ycb.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> <span style="color: #f8f8f2">maxYCrCb.push_back(ycb.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+        <span style="color: #f8f8f2">minLab.push_back</span>  <span style="color: #f8f8f2">(lab.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">thresh);</span> <span style="color: #f8f8f2">maxLab.push_back</span>  <span style="color: #f8f8f2">(lab.at</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec3b</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)[i]</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">thresh);</span> 
+    <span style="color: #f8f8f2">}</span>
+
+    <span style="color: #75715e">//统一到minRange和maxRange列中</span>
+    <span style="color: #f8f8f2">minRange</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{minBGR,</span> <span style="color: #f8f8f2">minHSV,</span> <span style="color: #f8f8f2">minYCrCb,</span> <span style="color: #f8f8f2">minLab};</span>  
+    <span style="color: #f8f8f2">maxRange</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{maxBGR,</span> <span style="color: #f8f8f2">maxHSV,</span> <span style="color: #f8f8f2">maxYCrCb,</span> <span style="color: #f8f8f2">maxLab};</span>  
+
+    <span style="color: #75715e">//定义颜色空间名和通道名</span>
+    <span style="color: #f8f8f2">colorSpaceName</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">&quot;BGR&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;HSV&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;YCrCb&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Lab&quot;</span><span style="color: #f8f8f2">};</span> 
+    <span style="color: #f8f8f2">channelName</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">&quot;B&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;G&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;R&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;H&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;S&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;V&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Y&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Cr&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Cb&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;L&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;a&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;b&quot;</span><span style="color: #f8f8f2">};</span> 
+
+    <span style="color: #75715e">//创建窗口与拉动条</span>
+    <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;param&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+    <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">colorSpaceName.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+        <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">j</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">j</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">j)</span> <span style="color: #f8f8f2">{</span>
+            <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;min&quot;</span><span style="color: #f92672">+</span><span style="color: #f8f8f2">channelName[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">3</span><span style="color: #f92672">+</span><span style="color: #f8f8f2">j],</span> <span style="color: #e6db74">&quot;param&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">minRange[i][j],</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">callback);</span>
+            <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;max&quot;</span><span style="color: #f92672">+</span><span style="color: #f8f8f2">channelName[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">3</span><span style="color: #f92672">+</span><span style="color: #f8f8f2">j],</span> <span style="color: #e6db74">&quot;param&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">maxRange[i][j],</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">callback);</span>
+        <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">callback(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+
+    <span style="color: #75715e">//按下任何键退出程序</span>
+    <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+    <span style="color: #f8f8f2">destroyAllWindows();</span> 
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #75715e">//每次任何一个拉动条被拉动时都会被call的函数</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span><span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #75715e">//每个颜色空间</span>
+    <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">colorSpaceName.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minValue(minRange[i][</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">minRange[i][</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">minRange[i][</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]);</span> 
+        <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxValue(maxRange[i][</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">maxRange[i][</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">maxRange[i][</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]);</span> 
+        
+        <span style="color: #75715e">//每个原始图像</span>
+        <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">j</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">j</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">srcImages.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">j)</span> <span style="color: #f8f8f2">{</span>
+            <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">imageCopy,</span> <span style="color: #f8f8f2">mask,</span> <span style="color: #f8f8f2">result;</span> 
+            <span style="color: #f8f8f2">srcImages[j].copyTo(imageCopy);</span> 
+            
+            <span style="color: #75715e">//颜色空间转换</span>
+            <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(colorSpaceName[i]</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&quot;HSV&quot;</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+                <span style="color: #f8f8f2">cvtColor(imageCopy,</span> <span style="color: #f8f8f2">imageCopy,</span> <span style="color: #f8f8f2">COLOR_BGR2HSV);</span> 
+            <span style="color: #f8f8f2">}</span> <span style="color: #66d9ef">else</span> <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(colorSpaceName[i]</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&quot;YCrCb&quot;</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+                <span style="color: #f8f8f2">cvtColor(imageCopy,</span> <span style="color: #f8f8f2">imageCopy,</span> <span style="color: #f8f8f2">COLOR_BGR2YCrCb);</span> 
+            <span style="color: #f8f8f2">}</span> <span style="color: #66d9ef">else</span> <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(colorSpaceName[i]</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&quot;Lab&quot;</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+                <span style="color: #f8f8f2">cvtColor(imageCopy,</span> <span style="color: #f8f8f2">imageCopy,</span> <span style="color: #f8f8f2">COLOR_BGR2Lab);</span> 
+            <span style="color: #f8f8f2">}</span>
+            <span style="color: #75715e">//阈值</span>
+            <span style="color: #f8f8f2">inRange(imageCopy,</span> <span style="color: #f8f8f2">minValue,</span> <span style="color: #f8f8f2">maxValue,</span> <span style="color: #f8f8f2">mask);</span>
+            <span style="color: #f8f8f2">bitwise_and(srcImages[j],</span> <span style="color: #f8f8f2">srcImages[j],</span> <span style="color: #f8f8f2">result,</span> <span style="color: #f8f8f2">mask);</span>
+            <span style="color: #f8f8f2">imshow(colorSpaceName[i]</span><span style="color: #f92672">+</span><span style="color: #e6db74">&quot;, Image&quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(j),</span> <span style="color: #f8f8f2">result);</span> 
+        <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">}</span>
+<span style="color: #f8f8f2">}</span></code></pre>
+			<div class="note">备注：这个程序也需C++11标准</div>
+			拖动拉动条，我们能获取更适合的阈值。当然，本示范只用了两张照片测试。现实中我们得尽量地使用更多的图像使得精度更加提升。<br><br>
+			
+			<h3>后处理</h3>
+			有些时候拿到的蒙版并不是那么理想：会有些黑洞口和一些白色杂质。作为后处理，我们能使用腐蚀、膨胀与滤波去除这些不必要的杂质。<br><br>
+			
+			<h3>色彩空间的其他有用应用</h3>
+			<ul>
+				<li>直方图均衡化通常在灰度图像上完成。但是，可以通过将RGB图像转换为YCbCr并仅对Y通道进行直方图均衡来对彩色图像进行均衡。</li>
+				<li>通过将图像转换为Lab色彩空间，在两个图像之间进行颜色转移。</li>
+				<li>智能手机相机应用程序（例如Google相机或Instagram）中的许多滤镜都利用这些颜色空间转换来创建这些炫酷效果！</li>
+			</ul>
+
+			</div>
+			<script type="text/javascript" src="../index.js"></script>
+		</body>
+	</html> 
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			

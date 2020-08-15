@@ -1,0 +1,310 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 绘画功能">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>绘画功能</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">绘画功能</div>
+		<div class="content">
+			
+			<h1>绘画功能</h1>
+
+			<h2>圆形</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>circle</strong>(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">center,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">radius,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">color,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">shift</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)</span></code>
+			
+			<h3>枚举类</h3>
+			<code><strong>lineType</strong><br>  8(默认)  ———— 8连接线。<br>  4       ———— 4连接线。<br>  CV_AA   ———— 抗锯齿线。</code>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">circle(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span></code>
+			中心(100,100)，半径50，线条颜色bgr(100,0,100)，线条厚度为2.
+			<pre style="text-align: center;"><img src="../Files/draw_circle_1.png" alt="circle1"/></pre><br><br>
+			
+			<code><span style="color: #f8f8f2">circle(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span></code>
+			中心(100,100)，半径50，实心，颜色bgr(100,0,100).
+			<pre style="text-align: center;"><img src="../Files/draw_circle_2.png" alt="circle2"/></pre><br><br><br>
+			
+			<h2>椭圆</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>ellipse</strong>(Mat</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">center,</span> <span style="color: #f8f8f2">Size</span> <span style="color: #f8f8f2">axes,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">angle,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">startAngle,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">endAngle,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">color,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">shift</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)</span></code>
+			
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>ellipse</strong>(Mat</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">img,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">RotatedRect</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">box,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">color,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">)</span></code>
+			<h3>参数</h3>
+		  <pre>img – 图片。
+center – 椭圆的中心。
+axes – 椭圆主轴尺寸的一半。(见下axes.width和axes.height)
+angle – 椭圆旋转角度，以度为单位。(见下angle)
+startAngle – 椭圆弧的起始角度，以度为单位。(见下startAngle)
+endAngle – 椭圆弧的终止角度，以度为单位。(见下endAngle)
+box – 通过RotatedRect或CvBox2D的替代椭圆表示。这意味着该函数绘制一个刻在旋转矩形中的椭圆。
+color – 颜色。
+thickness – 椭圆弧轮廓的厚度（如果为正）。 否则，这表明将绘制一个填充的椭圆扇形。
+lineType – 椭圆边界的类型。
+shift – 中心坐标和轴值中的小数位数。</pre>
+			<pre style="text-align: center;"><img src="../Files/draw_ellipse_0.png" width="100%" alt="ellipse"/></pre>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">ellipse(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Size(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">30</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">270</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">103</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span></code>
+			<pre style="text-align: center;"><img src="../Files/draw_ellipse_1.png" alt="ellipse"/></pre><br><br><br>
+			
+			<h2>长方形</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>rectangle</strong>(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">pt1,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">pt2,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">color,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">shift</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)</span></code>
+
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>rectangle</strong>(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Rect</span> <span style="color: #f8f8f2">rec,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">color,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">shift</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)</span></code>
+
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">rectangle(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">103</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span></code>
+			<pre style="text-align: center;"><img src="../Files/draw_rectangle_1.png" alt="rectangle"/></pre><br><br>
+			<code><span style="color: #f8f8f2">rectangle(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">103</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">5</span><span style="color: #f8f8f2">)</span></code>
+			<pre style="text-align: center;"><img src="../Files/draw_rectangle_2.png" alt="rectangle"/></pre><br><br><br>
+			
+			<h2>直线</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>line</strong>(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">pt1,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">pt2,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">color,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">shift</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)</span></code>
+			
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">line(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">103</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">5</span><span style="color: #f8f8f2">)</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/draw_line_1.png" alt="line"/></pre><br><br><br>
+			
+			<h2>箭头</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>arrowedLine</strong>(Mat</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">pt1,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">pt2,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">color,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">line_type</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">shift</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">tipLength</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0.1</span><span style="color: #f8f8f2">)</span></code>
+			
+			<h3>参数</h3>
+			<pre>tipLength – 箭头笔尖相对于箭头长度的长度</pre>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">arrowedLine(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">103</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">5</span><span style="color: #f8f8f2">)</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/draw_arrow.png" alt="arrowedline"/></pre><br /><br /><br />
+			
+			<h2>文字</h2>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>putText</strong>(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">string</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">text,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">org,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">fontFace,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">fontScale,</span> <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">color,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span><span style="color: #f92672">=</span><span style="color: #ae81ff">8</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">bottomLeftOrigin</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">false</span> <span style="color: #f8f8f2">)</span></code>
+			<h3>参数</h3>
+		  <pre>text – 要写入的文字。
+org – 左下角的坐标。 
+fontFace – 字体。为：FONT_HERSHEY_SIMPLEX, FONT_HERSHEY_PLAIN, FONT_HERSHEY_DUPLEX, 
+                   FONT_HERSHEY_COMPLEX, FONT_HERSHEY_TRIPLEX, FONT_HERSHEY_COMPLEX_SMALL, 
+                   FONT_HERSHEY_SCRIPT_SIMPLEX, or FONT_HERSHEY_SCRIPT_COMPLEX。
+                   字体ID可以+FONT_ITALIC 来得到倾斜的字体。 
+fontScale – 字体比例大小。 
+bottomLeftOrigin – 为true时，图像数据源位于左下角。 否则，它位于左上角（如果true，字体将上下倒反）。</pre>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">putText(img,</span> <span style="color: #e6db74">&quot;Hello&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">103</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">)</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/draw_text.png" alt="text"/></pre>
+			<div class="note">PutText仅支持英语字母，任何UTF是不支持的（包括汉字）</div><br><br><br>
+			
+			<h2>例子</h2>
+			<h3>例子(一)</h3>
+			<code><span class="white" style="margin-top: 0; ">draw_example_1.cpp</span>
+<span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img(</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,CV_8UC3,Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+    
+    <span style="color: #75715e">//中心点</span>
+    <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">center</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Point(img.cols</span><span style="color: #f92672">/</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,img.rows</span><span style="color: #f92672">/</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+    
+    <span style="color: #75715e">//实心圆</span>
+    <span style="color: #f8f8f2">circle(img,center,</span> <span style="color: #ae81ff">7</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span><span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span>
+    
+    <span style="color: #75715e">//椭圆</span>
+    <span style="color: #f8f8f2">Size</span> <span style="color: #f8f8f2">axes</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Size(img.rows</span><span style="color: #f92672">/</span><span style="color: #ae81ff">5</span><span style="color: #f8f8f2">,img.cols</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f92672">/</span><span style="color: #ae81ff">5</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #66d9ef">for</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">angle</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;angle</span><span style="color: #f92672">&lt;=</span><span style="color: #ae81ff">135</span><span style="color: #f8f8f2">;angle</span><span style="color: #f92672">+=</span><span style="color: #ae81ff">45</span><span style="color: #f8f8f2">)</span>
+         <span style="color: #f8f8f2">ellipse(img,center,axes,angle,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">360</span><span style="color: #f8f8f2">,Scalar(</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">20</span><span style="color: #f8f8f2">));</span>
+    
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;img&quot;</span><span style="color: #f8f8f2">,img);</span>
+    <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+    <span style="color: #f8f8f2">destroyAllWindows();</span> 
+    
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span></code>
+			<pre style="text-align: center;"><img src="../Files/draw_example_1.png" alt="example1"/></pre><br><br><br>
+			
+		  <h3>例子(二)</h3>
+			<pre style="padding:0; overflow-x: scroll;"><code style="width: 1300px; margin:0;"><span class="white" style="margin-top: 0; ">draw_example_2.cpp</span>
+<span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;vector&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">drawResult</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">rois,</span> <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">String</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">result)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">result.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+         <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(result[i]</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&quot;&quot;</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span> <span style="color: #66d9ef">continue</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">}</span>
+         <span style="color: #f8f8f2">rectangle(img,</span> <span style="color: #f8f8f2">rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f92672">+</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">75</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">75</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+         <span style="color: #f8f8f2">rectangle(img,</span> <span style="color: #f8f8f2">Point(rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">].x,</span> <span style="color: #f8f8f2">rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">].y),</span> <span style="color: #f8f8f2">Point(rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">].x</span><span style="color: #f92672">+</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">].y</span><span style="color: #f92672">+</span><span style="color: #ae81ff">20</span><span style="color: #f8f8f2">),</span> Scalar<span style="color: #f8f8f2">(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">75</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">75</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> 
+         <span style="color: #f8f8f2">putText(img,</span> <span style="color: #f8f8f2">result[i],</span> <span style="color: #f8f8f2">Point(rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">].x,rois[i</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">].y</span><span style="color: #f92672">+</span><span style="color: #ae81ff">15</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">0.6</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span>
+     <span style="color: #f8f8f2">}</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;result&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">img);</span>
+     <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+     <span style="color: #f8f8f2">destroyAllWindows();</span>
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;Strawberry.jpg&quot;</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">rois</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{Point(</span><span style="color: #ae81ff">350</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">580</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">420</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">185</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">270</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">345</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">365</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">295</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">405</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">490</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">615</span><span style="color: #f8f8f2">)};</span> 
+     <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">String</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">labels</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">{</span><span style="color: #e6db74">&quot;Strawberry&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Strawberry&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Strawberry&quot;</span><span style="color: #f8f8f2">};</span> 
+     <span style="color: #f8f8f2">drawResult(img,</span> <span style="color: #f8f8f2">rois,</span> <span style="color: #f8f8f2">labels);</span> 
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span></code></pre>
+			
+			<pre style="text-align: center;"><img src="../Files/draw_example_2.png" alt="example2"/></pre><br><br><br>
+			
+			<h3>例子(三)</h3>
+			<code style="height:1000px; overflow-y: scroll;"><span class="white" style="margin-top: 0; ">draw_example_3.cpp</span>
+<span style="color: #75715e">//绘制直线</span>
+<span style="color: #75715e">#include&lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#define w 300</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">DrawLine1</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f8f8f2">img,Point</span> <span style="color: #f8f8f2">start,Point</span> <span style="color: #f8f8f2">end);</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">DrawLine2</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f8f8f2">img,Point</span> <span style="color: #f8f8f2">start,Point</span> <span style="color: #f8f8f2">end);</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">DrawLine3</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f8f8f2">img,Point</span> <span style="color: #f8f8f2">start,Point</span> <span style="color: #f8f8f2">end);</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">FilledCircle</span><span style="color: #f8f8f2">(</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">center</span> <span style="color: #f8f8f2">);</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">Ellipse</span><span style="color: #f8f8f2">(</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">angle</span> <span style="color: #f8f8f2">);</span>
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;1&quot;</span><span style="color: #f8f8f2">,WINDOW_NORMAL);</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">image1</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Mat</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">zeros(w,</span><span style="color: #ae81ff">2</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">w,CV_8UC3);</span>
+    <span style="color: #75715e">//北</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">33</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">33</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">10</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">33</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">10</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">166</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">33</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">166</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">66</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">66</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">90</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">120</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">66</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">66</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">90</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//京</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">108</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">110</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">115</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">190</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">115</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">130</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">166</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">130</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">130</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">166</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">130</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">166</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">166</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">145</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">195</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">130</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">190</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">110</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine2(image1,Point(</span><span style="color: #ae81ff">170</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">190</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">190</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//理</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">210</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">110</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">238</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">110</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">210</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">238</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">210</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">238</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">224</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">110</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">224</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">250</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">290</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">250</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">250</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">290</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">290</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">250</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">290</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">270</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">270</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">250</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">125</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">290</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">125</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">175</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">285</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">175</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">245</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">295</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//工</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">310</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">105</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">390</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">105</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">310</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">390</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine1(image1,Point(</span><span style="color: #ae81ff">350</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">105</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">350</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//大</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">460</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">410</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">410</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">490</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">438</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">133</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">490</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//学</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">550</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">95</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">550</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">107</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">525</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">530</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">107</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">575</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">570</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">107</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">510</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">112</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">590</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">112</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">510</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">112</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">510</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">122</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">590</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">112</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">590</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">122</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">535</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">120</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">565</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">120</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">565</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">120</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">550</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">550</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">550</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">550</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">540</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">190</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">DrawLine3(image1,Point(</span><span style="color: #ae81ff">510</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),Point(</span><span style="color: #ae81ff">590</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//实心圆</span>
+    <span style="color: #f8f8f2">FilledCircle(image1,Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #75715e">//椭圆</span>
+    <span style="color: #f8f8f2">Ellipse(image1,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">Ellipse(image1,</span><span style="color: #ae81ff">90</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">Ellipse(image1,</span><span style="color: #ae81ff">45</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">Ellipse(image1,</span><span style="color: #ae81ff">135</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;1&quot;</span><span style="color: #f8f8f2">,image1);</span>
+    <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">destroyAllWindows();</span> 
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">DrawLine1</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f8f8f2">img,Point</span> <span style="color: #f8f8f2">start,Point</span> <span style="color: #f8f8f2">end)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">8</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">line(img,</span>
+    <span style="color: #f8f8f2">start,</span>
+    <span style="color: #f8f8f2">end,</span>
+    <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">30</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">30</span><span style="color: #f8f8f2">),</span>
+    <span style="color: #f8f8f2">thickness,</span>
+    <span style="color: #f8f8f2">lineType);</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">DrawLine2</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f8f8f2">img,Point</span> <span style="color: #f8f8f2">start,Point</span> <span style="color: #f8f8f2">end)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">8</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">line(img,</span>
+    <span style="color: #f8f8f2">start,</span>
+    <span style="color: #f8f8f2">end,</span>
+    <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span>
+    <span style="color: #f8f8f2">thickness,</span>
+    <span style="color: #f8f8f2">lineType);</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">DrawLine3</span><span style="color: #f8f8f2">(Mat</span> <span style="color: #f8f8f2">img,Point</span> <span style="color: #f8f8f2">start,Point</span> <span style="color: #f8f8f2">end)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">8</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">line(img,</span> <span style="color: #f8f8f2">start,</span> <span style="color: #f8f8f2">end,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">25</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">thickness,</span> <span style="color: #f8f8f2">lineType);</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">FilledCircle</span><span style="color: #f8f8f2">(</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img,</span> <span style="color: #f8f8f2">Point</span> <span style="color: #f8f8f2">center</span> <span style="color: #f8f8f2">)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span> <span style="color: #f92672">=</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">8</span><span style="color: #f8f8f2">;</span>
+
+    <span style="color: #f8f8f2">circle(img,</span> <span style="color: #f8f8f2">center,</span> <span style="color: #f8f8f2">w</span><span style="color: #f92672">/</span><span style="color: #ae81ff">40.0</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">thickness,</span> <span style="color: #f8f8f2">lineType);</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">Ellipse</span><span style="color: #f8f8f2">(</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">angle</span> <span style="color: #f8f8f2">)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thickness</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">1.5</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lineType</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">8</span><span style="color: #f8f8f2">;</span>
+
+    <span style="color: #f8f8f2">ellipse(img,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Size(</span><span style="color: #ae81ff">20</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">40</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">angle,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">360</span><span style="color: #f8f8f2">,</span> 
+            <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">20</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">thickness,</span> <span style="color: #f8f8f2">lineType);</span>
+<span style="color: #f8f8f2">}</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/draw_example_3.png" alt="example3"/></pre>
+			
+	</div>
+		<script type="text/javascript" src="../index.js"></script>
+		</body>
+</html> 
+			
+			
+			
+			
+			

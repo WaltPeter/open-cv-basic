@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 使用色彩空间分割图像示例">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>使用色彩空间分割图像示例</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">使用色彩空间分割图像示例</div>
+		<div class="content">
+			
+			<h1>1.在HSV空间检测肤色</h1>
+			
+			上一章介绍了一些颜色空间，其中包含了HSV颜色空间。这里我示范如何使用HSV阈值检测皮肤。<br>
+			<pre><iframe src="hsv_color_picker.html" style="width:calc(100% - 10px); height:200px; border:none; background: dimgray; border-radius: 6px; padding: 5px; "></iframe></pre>
+			注意看HSV空间中的Hue通道，是否有察觉最左边是红色，最右边也是红色？是的，颜色重复了。与其说是重复了，更准确来说是“环绕了一圈”。从上一章，我们看到了其实HSV空间显为一个圆柱体，Hue通道的值是从0°至360°（OpenCV内为了节省内存空间，范围这是0~180）<br>
+			<pre style="text-align: center;"><img src="../Files/hsv.png" style="background-color:white;" alt="" height="250px"/></pre>
+			皮肤，我们都知道颜色是带红的。那我们该怎么从图像中正确地分割出皮肤区域呢？<br>
+			很简单，与其使用一个范围值，我们使用两个范围值就好了呀。一个为左边的Hue范围，另一个为右边的Hue范围。<br>
+			使用上章的拉动条测试，我获得了以下的两个范围：
+			<pre><strong>H:</strong> 0 &lt; H &lt; 20 || 160 &lt; H &lt; 180
+<strong>S:</strong> 0.1*255 &lt; S &lt; 0.65*255
+<strong>V:</strong> 为了增强对光照的鲁棒性，不限定V的范围, 0 &lt; V &lt; 225
+</pre>
+			
+			<pre style="text-align: center;"><img src="../Files/skin-demo.png" alt="skin demo" /></pre>
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt; </span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #75715e">//我们使用默认相机为输入</span>
+    <span style="color: #f8f8f2">VideoCapture</span> <span style="color: #f8f8f2">capture;</span>
+    <span style="color: #f8f8f2">capture.open(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">frame;</span>
+    
+    <span style="color: #66d9ef">while</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span>
+    <span style="color: #f8f8f2">{</span>
+        <span style="color: #75715e">//从相机获取图侦</span>
+        <span style="color: #f8f8f2">capture</span> <span style="color: #f92672">&gt;&gt;</span> <span style="color: #f8f8f2">frame;</span>
+        
+        <span style="color: #75715e">//转换到hsv空间</span>
+        <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">hsvImg,</span> <span style="color: #f8f8f2">maskHSV,</span> <span style="color: #f8f8f2">maskHSVTemp;</span>
+        <span style="color: #f8f8f2">cvtColor(frame,hsvImg,CV_BGR2HSV);</span>
+        
+        <span style="color: #75715e">//第一个范围</span>
+        <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">minHSV(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0.1</span><span style="color: #f92672">*</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>  
+        <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">maxHSV(</span><span style="color: #ae81ff">20</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0.65</span><span style="color: #f92672">*</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">);</span> 
+        <span style="color: #f8f8f2">inRange(hsvImg,</span> <span style="color: #f8f8f2">minHSV,</span> <span style="color: #f8f8f2">maxHSV,</span> <span style="color: #f8f8f2">maskHSVTemp);</span>
+
+        <span style="color: #75715e">//第二个范围</span>
+        <span style="color: #f8f8f2">minHSV</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">160</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0.1</span><span style="color: #f92672">*</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>  
+        <span style="color: #f8f8f2">maxHSV</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">180</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0.65</span><span style="color: #f92672">*</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">);</span> 
+        <span style="color: #f8f8f2">inRange(hsvImg,</span> <span style="color: #f8f8f2">minHSV,</span> <span style="color: #f8f8f2">maxHSV,</span> <span style="color: #f8f8f2">maskHSV);</span>
+        
+        <span style="color: #75715e">//两个范围得到的蒙版相加在一起</span>
+        <span style="color: #f8f8f2">maskHSV</span> <span style="color: #f92672">+=</span> <span style="color: #f8f8f2">maskHSVTemp;</span> 
+
+        <span style="color: #75715e">//最后和运算并显示</span>
+        <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">skinImg;</span>        
+        <span style="color: #f8f8f2">bitwise_and(frame,</span> <span style="color: #f8f8f2">frame,</span> <span style="color: #f8f8f2">skinImg,</span> <span style="color: #f8f8f2">maskHSV);</span>
+
+        <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;frame&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+        <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;skinImg&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+        <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;frame&quot;</span><span style="color: #f8f8f2">,frame);</span>
+        <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;skinImg&quot;</span><span style="color: #f8f8f2">,skinImg);</span>
+        
+        <span style="color: #66d9ef">if</span><span style="color: #f8f8f2">(waitKey(</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&#39;q&#39;</span><span style="color: #f8f8f2">)</span>
+            <span style="color: #66d9ef">break</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">}</span>
+
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span></code>
+			
+			
+			</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			
+			
+			
+			
+			
+			
+			

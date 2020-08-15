@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 感兴趣区域(ROI)">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>感兴趣区域(ROI)</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">感兴趣区域(ROI)</div>
+		<div class="content">
+			
+			<h1>感兴趣区域(Region of Interest, ROI)</h1>
+			<pre style="text-align: center;"><img src="../Files/roi-1.png" alt="roi" /></pre>
+			感兴趣区域，Region of Interest，简称ROI是指从原图中提取出的一个副矩阵，相当于从图像中抠出一块矩形区域。
+
+			用法: 
+			<code><span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img2</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">img1(cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Rect(x,y,width,height))</span></code>
+			以上用法为从img1提取一个以(x,y)左上角，“width”宽度和“height”高度大小的矩阵。<br><br>
+			
+			<h2>感兴趣区域和原图像是一体</h2>
+			注意：ROI与原图像共用一块内存数据，改变ROI，则原图对应区域也会改变。<br><br>
+			
+			<h3>小实验</h3>
+			从之前的文章，这是个简单的读取并显示图像的代码：
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;iostream&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">argc,</span> <span style="color: #66d9ef">char</span><span style="color: #f92672">**</span> <span style="color: #f8f8f2">argv)</span>
+<span style="color: #f8f8f2">{</span>
+ <span style="color: #75715e">//读取照片</span>
+ <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">image</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;OpenCV_Logo.png&quot;</span><span style="color: #f8f8f2">);</span>
+
+ <span style="color: #75715e">//检测失误</span>
+ <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(image.empty())</span> 
+ <span style="color: #f8f8f2">{</span>
+  <span style="color: #f8f8f2">cout</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;Could not open or find the image&quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">endl;</span>
+  <span style="color: #f8f8f2">cin.get();</span> <span style="color: #75715e">//等待键盘输入</span>
+  <span style="color: #66d9ef">return</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">;</span>
+ <span style="color: #f8f8f2">}</span>
+
+ <span style="color: #f8f8f2">String</span> <span style="color: #f8f8f2">windowName</span> <span style="color: #f92672">=</span> <span style="color: #e6db74">&quot;OpenCV Test&quot;</span><span style="color: #f8f8f2">;</span>	   <span style="color: #75715e">//窗口名称</span>
+ <span style="color: #f8f8f2">namedWindow(windowName);</span> 		   <span style="color: #75715e">//创建新窗口</span>
+ <span style="color: #f8f8f2">imshow(windowName,</span> <span style="color: #f8f8f2">image);</span>		   <span style="color: #75715e">//使用新窗口显示照片</span>
+ <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 				   <span style="color: #75715e">//等待键盘输入</span>
+ <span style="color: #f8f8f2">destroyWindow(windowName);</span>		   <span style="color: #75715e">//关闭所有窗口</span>
+ <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span></code>
+            记得把"OpenCV_Logo.png"改为你的图像路径。<br><br>
+			
+			参考上面的代码，我们编出一个最简化的实验代码：
+			
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;iostream&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">argc,</span> <span style="color: #66d9ef">char</span><span style="color: #f92672">**</span> <span style="color: #f8f8f2">argv)</span>
+<span style="color: #f8f8f2">{</span>
+ <span style="color: #75715e">//读取照片</span>
+ <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">image</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;OpenCV_Logo.png&quot;</span><span style="color: #f8f8f2">);</span>
+
+ <span style="color: #75715e">//感兴趣区域</span>
+ <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">roi</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">image(Rect(</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">));</span> 
+ 
+
+ <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;img&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">image);</span>		<span style="color: #75715e">//显示原图</span>
+ <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;roi&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">roi);</span>        <span style="color: #75715e">//显示感兴趣区域</span>
+ <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 				   <span style="color: #75715e">//等待键盘输入</span>
+ <span style="color: #f8f8f2">destroyWindow(windowName);</span>		   <span style="color: #75715e">//关闭所有窗口</span>
+ <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span>
+</code>
+            编译运行后，我们可以看到两个窗口，个别是我们的原图和提取的roi。
+			<pre style="text-align: center;"><img src="../Files/roi-img-0.png" alt="orig img"/></pre>
+			<pre style="text-align: center;"><img src="../Files/roi-img-1.png" alt="roi"/></pre>
+			<div class="note">注意，定义ROI范围前必须先确认源图像尺寸，确保没超边。代码中没进行这方面的错误处理。</div>
+			
+			上面我们实现了感兴趣区域的提取，下面我们要证明它与原图的关系。<br><br>
+			在imshow之前，我们对roi进行绘图：
+			<code><span style="color: #f8f8f2">...</span>
+ <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">roi</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">image(Rect(</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">));</span> 
+ 
+ <span style="color: #75715e">//在roi上绘画</span>
+ <span style="color: #f8f8f2">rectangle(roi,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+			
+ <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;img&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">image);</span> <span style="color: #75715e">//显示原图</span>
+<span style="color: #f8f8f2">...</span></code>
+			这段添加的代码是在roi上画一个左上角为(100,100)，右下角(200,200)，边颜色为(255,0,0)蓝，变厚为2的四边形。<br><br>
+			编译运行后可获得以下结果：
+			<pre style="text-align: center;"><img src="../Files/roi-img-2.png" alt="orig img"/></pre>
+			<pre style="text-align: center;"><img src="../Files/roi-img-3.png" alt="roi" /></pre>
+			可发现，我们在roi上绘画的四边形，在原图上也有，而且我们并没有在原图上绘画任何东西。这证明了感兴趣区域和原图像是公用同个内存空间的。
+
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			
+			
+			
+			
+			
+			
+			
+			

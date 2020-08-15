@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 轮廓分析(下)">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>轮廓分析(下)</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">轮廓分析(下)</div>
+		<div class="content">
+			
+			<h1>轮廓分析(下)</h1>
+			
+			<h2>矩形边界</h2>
+			<h3>直矩形边界</h3>
+			这是一个直角矩形，不考虑对象的旋转角度。因此，矩形边界的面积将并不会是最小。
+			<code><span style="color: #f8f8f2">Rect</span> <span style="color: #f8f8f2"><strong>boundingRect</strong>(InputArray</span> <span style="color: #f8f8f2">array)</span></code>
+			<h4>参数</h4>
+			<pre>输入vector&lt;Point&gt;或Mat，输出Rect类型</pre><br>
+			
+			<h3>旋转矩形</h3>
+			考虑了旋转，以最小面积绘制边界矩形。
+			<code><span style="color: #f8f8f2">RotatedRect</span> <span style="color: #f8f8f2"><strong>minAreaRect</strong>(InputArray</span> <span style="color: #f8f8f2">points)</span></code>
+			<h4>参数</h4>
+			<pre>输入vector&lt;Point&gt;或Mat，输出RotatedRect类型</pre>
+			minAreaRect()，它返回一个RotatedRect类型，其中包含以下细节：中心Point2f(x,y)，Size2f(宽,高)，float angle旋转角度。但是要绘制此矩形，我们需要矩形的4个角，可通过RotatedRect::points()函数获得。
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #f8f8f2">RotatedRect</span> <span style="color: #f8f8f2">rRect</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">minAreaRect(contours[i]);</span> 
+     <span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">vertices[</span><span style="color: #ae81ff">4</span><span style="color: #f8f8f2">];</span>
+     <span style="color: #f8f8f2">rRect.points(vertices);</span>
+     <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #ae81ff">4</span><span style="color: #f8f8f2">;</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span>
+          <span style="color: #f8f8f2">line(test_image,</span> <span style="color: #f8f8f2">vertices[i],</span> <span style="color: #f8f8f2">vertices[(i</span><span style="color: #f92672">+</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span><span style="color: #f92672">%</span><span style="color: #ae81ff">4</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+<span style="color: #f8f8f2">...</span></code>
+			<pre style="text-align: center;"><img src="../Files/boundingrect.png" alt="bndrect"/><br>青色：boundingRect; 红色：minAreaRect</pre><br /><br /><br />
+
+			<h2>最小围圈</h2>
+			计算一个轮廓的外接圆。它是一个以最小面积完全覆盖对象的正圆圈。
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2">minEnclosingCircle(InputArray</span> <span style="color: #f8f8f2">points,</span> <span style="color: #f8f8f2">Point2f</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">center,</span> <span style="color: #66d9ef">float</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">radius)</span></code>
+			
+			<h3>参数</h3>
+			<pre>输入points，类型vector&lt;Point&gt;或Mat. 输出center，圆圈的中心点，类型Point2f；和，radius，圆圈的半径，类型float. </pre>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">...</span>
+<span style="color: #75715e">// Find the minimum area enclosing circle</span>
+<span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">center;</span>
+<span style="color: #66d9ef">float</span> <span style="color: #f8f8f2">radius</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">minEnclosingCircle(points,</span> <span style="color: #f8f8f2">center,</span> <span style="color: #f8f8f2">radius);</span> 
+
+<span style="color: #75715e">// Draw the circle</span>
+<span style="color: #f8f8f2">circle(img,</span> <span style="color: #f8f8f2">center,</span> <span style="color: #f8f8f2">cvRound(radius),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">LINE_AA);</span>
+<span style="color: #f8f8f2">...</span></code>
+			<pre style="text-align: center;"><img src="../Files/circumcircle.png" alt="minclosingcircle"/></pre><br /><br /><br />
+
+			<h2>拟合椭圆</h2>
+			使椭圆拟合对象。返回一个描述椭圆的RotatedRect。
+			<code><span style="color: #f8f8f2">RotatedRect</span> <span style="color: #f8f8f2"><strong>fitEllipse</strong>(InputArray</span> <span style="color: #f8f8f2">points)</span></code>
+			
+			<h3>参数</h3>
+			<pre>输入vector&lt;Point&gt;或Mat，返回RotatedRect.</pre>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">...</span>
+<span style="color: #f8f8f2">RotatedRect</span> <span style="color: #f8f8f2">box</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">fitEllipse(contours[i]);</span> 
+<span style="color: #f8f8f2">ellipse(img,</span> <span style="color: #f8f8f2">box,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">LINE_AA);</span> 
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/fitellipse.png" alt="fitellipse"/></pre><br /><br /><br />
+
+			<h2>拟合直线</h2>
+			同样，我们可以将一条直线拟合到轮廓上（一组点）。下图包含一组白点。我们可以近似一条直线。
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>fitLine</strong>(InputArray</span> <span style="color: #f8f8f2">points,</span> <span style="color: #f8f8f2">OutputArray</span> <span style="color: #f8f8f2">line,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">distType,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">param,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">reps,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">aeps)</span></code>
+			fitLine函数通过最小化∑<sub>i</sub>ρ(r<sub>i</sub>)将线拟合到2D或3D点集，其中r<sub>i</sub>是直线距离第i个点之间的距离，ρ(r)是距离函数，其中为：
+			<h3>DistanceTypes</h3>
+			<pre>
+DIST_USER   —— 用户自定义距离函数。
+
+DIST_L1     —— ρ(r) = |x1-x2| + |y1-y2|
+
+DIST_L2     —— 简单欧氏距离
+
+DIST_C      —— ρ(r) = max(|x1-x2|,|y1-y2|)
+
+DIST_L12    —— L1-L2公制: ρ(r) = 2(sqrt(1+x*x/2) - 1))
+
+DIST_FAIR   —— ρ(r) = c^2(|x|/c-log(1+|x|/c)), c = 1.3998
+
+DIST_WELSCH —— ρ(r)e = c^2/2(1-exp(-(x/c)^2)), c = 2.9846
+
+DIST_HUBER  —— ρ(r) = |x|&lt;c ? x^2/2 : c(|x|-c/2), c=1.345</pre>
+			<a href="http://en.wikipedia.org/wiki/M-estimator">[维奇百科]</a>
+			<h3>参数</h3>
+			<pre>
+points   —— 2D或3D点的输入向量，存储在vector&lt;Point&gt;或Mat中。
+line     —— 输出直线线参数。如果是2D拟合，则它应该是4个元素的向量(Vec4f)：(vx,vy,x0,y0)，
+            其中(vx,vy)是形容那直线的已归一化向量，而(x0,y0)是直线上的其中一点。
+            如果是3D拟合，它则会是6个元素的向量(Vec6f)：(vx,vy,vz,x0,y0,z0)，
+            其中(vx,vy,vz)是形容那直线的已归一化3D向量，而(x0,y0,z0)是直线上的一个点。
+distType —— 选择距离函数，请参见DistanceTypes
+param    —— 某些距离类型的数值参数（C）。如果为0，则选择一个最佳值。
+reps     —— 半径的足够精度（坐标原点和直线之间的距离）。
+aeps     —— 足够的角度精度。对于reps和aeps，0.01将是一个很好的默认值。</pre>
+
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">...</span>
+<span style="color: #f8f8f2">Vec4f</span> <span style="color: #f8f8f2">line;</span> 
+<span style="color: #f8f8f2">fitLine(contours[i],</span> <span style="color: #f8f8f2">line,</span> <span style="color: #f8f8f2">DIST_L2,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0.01</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0.01</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">lefty</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">(</span><span style="color: #f92672">-</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">]</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span><span style="color: #f92672">/</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">])</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span> 
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">righty</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">((img.size().width</span><span style="color: #f92672">-</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">])</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]</span><span style="color: #f92672">/</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">])</span><span style="color: #f92672">+</span><span style="color: #f8f8f2">line[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">];</span> 
+<span style="color: #f8f8f2">line(img,</span> <span style="color: #f8f8f2">Point(img.size().width</span><span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,righty),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,lefty),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">...</span></code>
+
+			
+			<pre style="text-align: center;"><img src="../Files/fitline.jpg" alt="fitline"/></pre>
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

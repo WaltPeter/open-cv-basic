@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="均值偏移滤波(Mean Shift Filtering) OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>均值偏移滤波(Mean Shift Filtering)</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">均值偏移滤波(Mean Shift Filtering)</div>
+		<div class="content">
+			
+			<h1>均值偏移滤波(Mean Shift Filtering)</h1>
+			<pre style="text-align: center;"><img src="../Files/mean-shift-filtering-example.png" alt="mean shift filtering example"/></pre><br><br><br>
+			
+			<h2>均值偏移</h2>
+			
+			均值偏移滤波是计算机视觉和图像处理中常用的数据聚类算法。对于图像的每个像素(具有物理空间位置和特定颜色信息)，计算一组相邻像素(在定义的空间半径和颜色距离内). 物理空间上坐标2个—x、y，色彩空间上坐标3个—R、G、B(或任何3维颜色空间)，构成一个5维的空间球体。对于这组相邻像素，将计算新的空间中心点(空间平均值)和新的颜色平均值。这些计算出的平均值将用作下一次迭代的新中心点。所描述的过程将重复进行，直到空间和颜色(或灰度)平均值停止变化为止。在迭代结束时，最终的平均颜色将分配给该迭代的开始位置。<br><br>
+			
+			这一章我们必须也从另一个角度去看图像。我们一般都把图像看作是一个三维的矩阵，即按像素位置排位。但图像数据还有一个特性，就是颜色(建议看<a href="../image-segmentation-using-colorspace/index.html">颜色空间</a>了解更多)。我们也可以按颜色的3个通道值，排出像是以下的颜色空间点云。
+			
+			<pre style="text-align: center;"><img src="../Files/clown-point-cloud.png" alt="point cloud"/></pre>
+			
+			以下动画解释均值偏移的步骤。这步骤有时也称为均值偏移聚类(mean shift clustering). 当然，均值偏移并没有以下动画那么简单，毕竟均值偏移使用的是一个5维的空间球体，而下面的只是个2维球体示范。
+			
+			<pre style="text-align: center;"><img src="../Files/mean-shift-clustering.gif" alt="mean shift clustering"/></pre>
+			
+			<br><br><br>
+			
+			<h2>OpenCV pyrMeanShiftFiltering</h2>
+			
+			pyrMeanShiftFiltering会多出一个maxLevel参数。当maxLevel&gt;0时，将建立maxLevel+1级别的高斯金字塔(gaussian pyramid)，并且上面(均值偏移)的过程首先在最小的层上运行。之后，结果将传递到较大的图层，并且仅在图层颜色与金字塔的较低分辨率图层(上一层)相差超过自定义颜色距离的那些像素上再次运行迭代。这使得颜色区域的边界更加清晰。
+			
+			<h3>函数</h3>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2">pyrMeanShiftFiltering(InputArray</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">OutputArray</span> <span style="color: #f8f8f2">dst,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">sp,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">sr,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">maxLevel</span><span style="color: #f92672">=</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">TermCriteria</span> <span style="color: #f8f8f2">termcrit</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">TermCriteria(TermCriteria</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">MAX_ITER</span><span style="color: #f92672">+</span><span style="color: #f8f8f2">TermCriteria</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">EPS,</span> <span style="color: #ae81ff">5</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">)</span></code>
+			
+			<h3>参数</h3>
+			<pre>
+src      —— 源8位3通道图像。
+dst      —— 与源格式和大小相同的目标图像。
+sp       —— 空间半径。
+sr       —— 颜色距离。
+maxLevel —— 选填。金字塔的最大级别。
+termcrit —— 选填。终止标准：何时停止均值漂移迭代。</pre>
+			
+			<h3>例子</h3>
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">);</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">spatialRad</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">;</span>  <span style="color: #75715e">// 空间窗口半径</span>
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">colorRad</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">;</span>   <span style="color: #75715e">// 色彩距离</span>
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">maxPyrLevel</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">;</span>  <span style="color: #75715e">// 高斯金字塔层数</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;clown.jpg&quot;</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">//读入图像  </span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;srcImg&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">img);</span> 
+
+     <span style="color: #75715e">// 拉动条</span>
+     <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;param&quot;</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;sr&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;param&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">spatialRad,</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">callback,</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">void</span> <span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img);</span> 
+     <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;cr&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;param&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">colorRad,</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">callback,</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">void</span> <span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img);</span> 
+
+     <span style="color: #75715e">// 初始化</span>
+     <span style="color: #f8f8f2">callback(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">void</span> <span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img);</span> 
+
+     <span style="color: #75715e">// 等待退出</span>
+     <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">destroyAllWindows();</span> 
+
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #75715e">// 拖动条call函数</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">param)</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f92672">*</span><span style="color: #f8f8f2">(Mat</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">param;</span> <span style="color: #75715e">// 指针类变换</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">res;</span> <span style="color: #75715e">// 结果图</span>
+     <span style="color: #f8f8f2">pyrMeanShiftFiltering(img,</span> <span style="color: #f8f8f2">res,</span> <span style="color: #f8f8f2">spatialRad,</span> <span style="color: #f8f8f2">colorRad,</span> <span style="color: #f8f8f2">maxPyrLevel);</span> <span style="color: #75715e">// 均值滤波</span>
+     
+     <span style="color: #75715e">// 显示</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Result&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">res);</span> 
+<span style="color: #f8f8f2">}</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/mean-shift-filtering-result.png" alt="result" width="100%" style="max-height: none;"/></pre>
+			
+			<div class="note">在这个过程中，关键参数是sp和sr的设置，二者设置的值越大，对图像色彩的平滑效果越明显，同时函数耗时也越多。</div>
+			
+			
+        </div>
+<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>

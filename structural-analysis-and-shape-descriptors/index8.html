@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 关于minAreaRect获得的rotatedRect之angle">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>关于minAreaRect获得的rotatedRect之angle</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">关于minAreaRect获得的rotatedRect之angle</div>
+		<div class="content">
+			
+			<h1>关于minAreaRect获得的rotatedRect之angle</h1>
+			
+			刚学会了轮廓分析的一些基本操作，想使用minAreaRect的angle信息去分辨一些情况时... 却发现它给出的角度... 很玄学——输出的角度值和我们想象的不一样！
+			
+			<pre style="text-align: center;"><img src="../Files/bearing-angle.jpg" alt="bearing angle" width="300"/><br>一般情况/常识/习惯性地，我们会根据方位角去计算角度</pre>
+			<pre style="text-align: center;"><img src="../Files/cartesian-plane-angle.png" width="300" style="background: white;" alt="cartesian plane angle"/><br>或者是笛卡尔平面角度</pre>
+			
+			但是，OpenCV给我们的却是-0到-90°的角度。这角度是什么意思呢？该如何转换成我们熟悉的方式呢？<br><br>
+			
+			<h2>小实验</h2>
+			我做了个实验，探讨这角度的规律。以下便是结果：
+			<pre style="text-align: center;"><video autoplay loop muted width="600" height="300"><source src="../Files/MyVideo.mp4" type="video/mp4">Your browser does not support the video tag.</video></pre>
+			
+			实验源代码，有兴趣可以自己试试：
+			
+			<pre style="overflow: scroll; padding:0px; height: 500px;"><code style="width: 1500px; margin: 0px;"><span style="color: #75715e">/*</span>
+<span style="color: #75715e"> * @Author: WaltPeter</span>
+<span style="color: #75715e"> * @Date: 2020-08-12 14:53:14</span>
+<span style="color: #75715e"> * @LastEditors: WaltPeter</span>
+<span style="color: #75715e"> * @LastEditTime: 2020-08-13 23:33:21</span>
+<span style="color: #75715e"> * @Description: file content</span>
+<span style="color: #75715e"> */</span>
+
+<span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt; </span>
+<span style="color: #75715e">#include &lt;vector&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #66d9ef">float</span> <span style="color: #f8f8f2">angle</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+
+     <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #ae81ff">180</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+          <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">frame(Size(</span><span style="color: #ae81ff">600</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">CV_8UC3,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">));</span> 
+
+          <span style="color: #f8f8f2">angle</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">*</span> <span style="color: #ae81ff">1.</span><span style="color: #f8f8f2">;</span> 
+          <span style="color: #f8f8f2">RotatedRect</span> <span style="color: #f8f8f2">R1(Point(</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">150</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Size(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">angle);</span> 
+
+          <span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">vertices[</span><span style="color: #ae81ff">4</span><span style="color: #f8f8f2">];</span> 
+          <span style="color: #f8f8f2">R1.points(vertices);</span> 
+          <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span> <span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">cnts;</span> 
+          <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">cnt;</span> 
+          <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #ae81ff">4</span><span style="color: #f8f8f2">;</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> 
+               <span style="color: #f8f8f2">cnt.push_back(Point(vertices[i]));</span> 
+          <span style="color: #f8f8f2">cnts.push_back(cnt);</span> 
+          <span style="color: #f8f8f2">drawContours(frame,</span> <span style="color: #f8f8f2">cnts,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> 
+
+          <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">bin;</span> 
+          <span style="color: #f8f8f2">cvtColor(frame,</span> <span style="color: #f8f8f2">bin,</span> <span style="color: #f8f8f2">COLOR_BGR2GRAY);</span> 
+          <span style="color: #f8f8f2">threshold(bin,</span> <span style="color: #f8f8f2">bin,</span> <span style="color: #ae81ff">127</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">THRESH_BINARY_INV);</span> 
+
+          <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span> 
+          <span style="color: #f8f8f2">findContours(bin,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">RETR_EXTERNAL,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE);</span> 
+
+          <span style="color: #f8f8f2">RotatedRect</span> <span style="color: #f8f8f2">rRect</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">minAreaRect(contours[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]);</span> 
+          <span style="color: #f8f8f2">rRect.points(vertices);</span>
+          <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #ae81ff">4</span><span style="color: #f8f8f2">;</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+               <span style="color: #f8f8f2">line(frame,</span> <span style="color: #f8f8f2">vertices[i],</span> <span style="color: #f8f8f2">vertices[(i</span><span style="color: #f92672">+</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span><span style="color: #f92672">%</span><span style="color: #ae81ff">4</span><span style="color: #f8f8f2">],</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+               <span style="color: #f8f8f2">putText(frame,</span> <span style="color: #f8f8f2">to_string(i),</span> <span style="color: #f8f8f2">vertices[i],</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">0.6</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+          <span style="color: #f8f8f2">}</span>
+          
+          <span style="color: #f8f8f2">line(frame,</span> <span style="color: #f8f8f2">Point(vertices[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]),</span> <span style="color: #f8f8f2">Point2f(vertices[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">].x</span><span style="color: #f92672">+</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">vertices[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">].y),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+
+          <span style="color: #f8f8f2">rectangle(frame,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">600</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">300</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> 
+
+          <span style="color: #f8f8f2">putText(frame,</span> <span style="color: #e6db74">&quot;Angle: &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(rRect.angle),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">320</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">0.7</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+          <span style="color: #f8f8f2">putText(frame,</span> <span style="color: #e6db74">&quot;Width: &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(rRect.size.width),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">320</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">90</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">0.7</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+          <span style="color: #f8f8f2">putText(frame,</span> <span style="color: #e6db74">&quot;Height: &quot;</span> <span style="color: #f92672">+</span> <span style="color: #f8f8f2">to_string(rRect.size.height),</span> <span style="color: #f8f8f2">Point(</span><span style="color: #ae81ff">320</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">130</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">0.7</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> 
+
+          <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;result&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">frame);</span> 
+          <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">50</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">}</span> 
+     <span style="color: #f8f8f2">destroyAllWindows();</span> 
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span></code></pre><br>
+			
+			<h3>观察结果</h3>
+			<pre><ol><li>矩形的最低点是第0个顶点，第1，第2，第3个顶点顺时针跟随。</li>
+<li>高度是第0和1（=第2和3）个顶点之间的距离。宽度是第1个和第2（=第0和第3）个顶点之间的距离。</li>
+<li>角度是从水平方向（视频中的红色尾巴）到矩形的第一边缘（逆时针）计算的。</li>
+<li>角度在-0到-90之间变化（我不确定-0或-90是决定性因素，有时-0和-90是一样的）</li></ol></pre><br><br>
+			
+			<h2>minAreaRect角度换成笛卡尔平面角度</h2>
+			知道了这些特性，我们可以把它换算成我们常用的笛卡尔平面角度，即从0~180°的数值（180~360°其实是重复了）。代码如下：
+			<code><span style="color: #66d9ef">float</span> <span style="color: #f8f8f2">ang</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">rRect.angle;</span> 
+     <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(rRect.size.width</span> <span style="color: #f92672">&lt;</span> <span style="color: #f8f8f2">rRect.size.height)</span> <span style="color: #f8f8f2">{</span>
+          <span style="color: #f8f8f2">ang</span> <span style="color: #f92672">-=</span> <span style="color: #ae81ff">90</span><span style="color: #f8f8f2">;</span>
+     <span style="color: #f8f8f2">}</span>
+<span style="color: #f8f8f2">ang</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">abs(ang);</span> </code>
+			<pre style="text-align: center;"><video autoplay loop muted width="600" height="300"><source src="../Files/MyVideo1.mp4" type="video/mp4">Your browser does not support the video tag.</video></pre>
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

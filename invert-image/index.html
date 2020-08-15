@@ -11,6 +11,25 @@
 		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
 	</head>
 	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
 		<div id="banner">反转图像</div>
 		<div class="content">
 			
@@ -76,6 +95,12 @@ int main()
 <li><strong>src</strong> – 输入数组。</li>
 <li><strong>dst</strong> – 输出数组，其大小和类型与输入数组相同。</li>
 <li><strong>mask</strong> – 可选的操作掩码，8位单通道数组，用于指定要更改的输出数组的元素。</li></ul></pre>
+			
+			
+			</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
 			
 			
 			

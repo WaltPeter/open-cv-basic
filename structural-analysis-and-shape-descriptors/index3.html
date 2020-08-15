@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 轮廓分析(上)">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>轮廓分析(上)</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">轮廓分析(上)</div>
+		<div class="content">
+			
+			<h1>轮廓分析(上)</h1>
+			
+			前两章我们学习了轮廓检测。那，轮廓有什么用呢？其实轮廓包含的信息很多，最明显的是它的尺寸大小、面积、周长等。我们能从中做很多不一样的用途，其中包括了识别筛选目标。下面介绍一些在轮廓分析上常用的功能，与一些例子。<br><br>
+			
+			<h2>轮廓面积</h2>
+			近100%我们使用轮廓检测时会有“噪音”的存在，也就是在二进制后观察获得的蒙版你可以看到一些细细小小的白色小点或是在白色区域内有着细小的黑色空洞。使用我们之前学的形态运算、腐蚀和膨胀，我们能消除近大部分的“噪音”，但是并不能完全100%确定最后的蒙版是真的没“噪音”的。这就是轮廓面积分析起作用的时候了。我们能把面积太小的轮廓淘汰。<br><br>
+			
+			换一个方面思考，如果必须识别出的物体有个尺寸大小限定，也就是说我们要检测出来的物体大小不是很小也不是很大。这时我们也能通过判断面积先把肯定是非目标的过滤掉。
+			
+			<code><span style="color: #66d9ef">double</span> <span style="color: #f8f8f2"><strong>contourArea</strong>(InputArray</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">contour,</span> <span style="color: #f8f8f2">]</span>  <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">oriented</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">false)</span></code>
+			<h3>参数</h3>
+			<pre>
+contour    —— 输入轮廓一般类为vector&lt;Point&gt;或Mat
+orientated —— 定向区域标志。
+              如果为true，则函数将根据轮廓方向（顺时针或逆时针）返回带符号的区域值。
+              使用此功能，可以通过获取区域的符号来确定轮廓的方向。
+              默认情况下，该参数为false，表示返回绝对值。</pre>
+			
+			<h3>例子</h3>
+			<code><span style="color: #75715e">#include&lt;opencv2/opencv.hpp&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src;</span>
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">minArea</span><span style="color: #f92672">=</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">;</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span><span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">);</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">src</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;units7.png&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">resize(src,src,Size(</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">100</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">threshold(src,src,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,CV_THRESH_OTSU);</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;src&quot;</span><span style="color: #f8f8f2">,src);</span>
+
+    <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;select&quot;</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;minArea&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #e6db74">&quot;select&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">minArea,</span><span style="color: #ae81ff">1000</span><span style="color: #f8f8f2">,callback);</span>
+    <span style="color: #f8f8f2">callback(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+
+    <span style="color: #f8f8f2">waitKey();</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span><span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img1(src.size(),CV_8U,Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">));</span>
+
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span>
+    <span style="color: #f8f8f2">findContours(src,contours,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);</span>
+    <span style="color: #66d9ef">for</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">contours.size();i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span>
+        <span style="color: #66d9ef">if</span><span style="color: #f8f8f2">(contourArea(contours[i])</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">minArea)</span>
+            <span style="color: #f8f8f2">drawContours(img1,contours,i,Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;img1&quot;</span><span style="color: #f8f8f2">,img1);</span>
+<span style="color: #f8f8f2">}</span></code>
+			<pre style="text-align: center;"><img src="../Files/contour_area.png" alt="contourarea"/></pre><br><br><br>
+			
+			有些时候你可能需要用到周长。
+			<h2>轮廓周长</h2>
+			也称为弧长。可以使用arcLength()函数计算。第二个参数指定是否闭合轮廓，或让它只是个曲线(头尾不链接)。
+			<code><span style="color: #66d9ef">double</span> <span style="color: #f8f8f2"><strong>arcLength</strong>(InputArray</span> <span style="color: #f8f8f2">curve,</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">closed</span> <span style="color: #f8f8f2">)</span></code><br /><br /><br />
+			
+			<h2>力矩(Moments)</h2>
+			<code><span style="color: #f8f8f2">Moments</span> <span style="color: #f8f8f2"><strong>moments</strong>(InputArray</span> <span style="color: #f8f8f2">array,</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">binaryImage</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">false)</span></code>
+			该函数计算矢量形状或栅格化形状的力矩，直到第三阶。
+			<h3>参数</h3>
+			<pre>
+array       —— 2D点列(vector&lt;Point&gt;或vector&lt;Point2f&gt;，1×N或N×1)或
+               栅格图像（单通道，8位或浮点2D数组）。
+binaryImage —— 默认false。如果为true，则所有非零图像像素均被视为1。该参数仅用于栅格图像</pre>
+			<h3>返回</h3>
+			<pre>Moments类型的力矩数据</pre>
+			<h3>例子</h3>
+			下面例子示范使用moments获取轮廓的重心点。
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;iostream&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span>
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src_gray;</span>
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">thresh</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">100</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">RNG</span> <span style="color: #a6e22e">rng</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">12345</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">thresh_callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">);</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;stuff.jpg&quot;</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">cvtColor(src,</span> <span style="color: #f8f8f2">src_gray,</span> <span style="color: #f8f8f2">COLOR_BGR2GRAY);</span>
+    <span style="color: #f8f8f2">blur(src_gray,</span> <span style="color: #f8f8f2">src_gray,</span> <span style="color: #f8f8f2">Size(</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Source&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">src);</span> 
+    <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;Canny thresh:&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;Source&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">thresh,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">thresh_callback);</span>
+    <span style="color: #f8f8f2">thresh_callback(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+
+    <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">thresh_callback</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">canny_output;</span>
+    <span style="color: #f8f8f2">Canny(src_gray,</span> <span style="color: #f8f8f2">canny_output,</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #f8f8f2">thresh</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span>
+    <span style="color: #f8f8f2">findContours(canny_output,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">RETR_TREE,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE);</span>
+
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">drawing</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Mat</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">zeros(canny_output.size(),</span> <span style="color: #f8f8f2">CV_8UC3);</span>
+
+    <span style="color: #66d9ef">for</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #f8f8f2">contours.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+        <span style="color: #75715e">// 计算力矩</span>
+        <span style="color: #f8f8f2">Moments</span> <span style="color: #f8f8f2">mu</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">moments(contours[i]);</span>
+
+        <span style="color: #75715e">// 算出重心点mc</span>
+        <span style="color: #75715e">// 加上 1e-5 避免 division by zero</span>
+        <span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">mc</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Point2f(</span><span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">float</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(mu.m10</span> <span style="color: #f92672">/</span> <span style="color: #f8f8f2">(mu.m00</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">1e-5</span><span style="color: #f8f8f2">)),</span>
+                             <span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">float</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(mu.m01</span> <span style="color: #f92672">/</span> <span style="color: #f8f8f2">(mu.m00</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">1e-5</span><span style="color: #f8f8f2">)));</span>
+        <span style="color: #f8f8f2">cout</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;mc[&quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;]=&quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">mc</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">endl;</span>
+
+        <span style="color: #75715e">// 显示轮廓和重心点</span>
+        <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">color</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">));</span>
+        <span style="color: #f8f8f2">drawContours(drawing,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">i,</span> <span style="color: #f8f8f2">color,</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+        <span style="color: #f8f8f2">circle(drawing,</span> <span style="color: #f8f8f2">mc,</span> <span style="color: #ae81ff">4</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">color,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Contours&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">drawing);</span> 
+<span style="color: #f8f8f2">}</span></code>
+			<pre style="text-align: center;"><img src="../Files/moment-source.jpg" alt="source"/><br><img src="../Files/moment-result.jpg" alt="result"/></pre>
+			我们也可以从moments中获取轮廓的面积：
+			<code><span style="color: #f8f8f2">...</span>
+<span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">area</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">mu.m00;</span> 
+<span style="color: #f8f8f2">...</span></code>
+			<div class="note">注：由于轮廓矩是使用<a href="http://en.wikipedia.org/wiki/Green_theorem">Green公式</a>计算的，因此对于具有<strong>自相交</strong>的轮廓，你可能会得到看似奇怪的结果，例如：蝶形轮廓的面积（m00）为0。</div>
+			<br><br><br>
+
+			<h2>轮廓近似</h2>
+			根据我们指定的精度，它可以将轮廓形状近似为顶点数量较少的其他形状。它是Douglas-Peucker算法 <a href="http://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm">[维基百科]</a>的实现。<br><br>
+
+			举例，假设你试图在图像中找到一个方形，但是由于图像中的某些问题(噪音等)，你没有得到一个完美的方形，而是一个“坏形状”（如下图所示）。现在，你可以使用此功能来近似形状。approxPolyDP第二个参数称为epsilon，是从轮廓到近似轮廓的最大可允许差距。它是一个精度参数。需要正确选择epsilon才能获得正确的输出。第三个参数指定曲线是否闭合。
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>approxPolyDP</strong>(InputArray</span> <span style="color: #f8f8f2">curve,</span>
+<span style="color: #f8f8f2">OutputArray</span> <span style="color: #f8f8f2">approxCurve,</span> <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">epsilon,</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">closed)</span></code>
+			<h3>参数</h3>
+			<pre>
+curve       —— 存储在vector&lt;Point&gt;或Mat中的2D点的输入向量
+approxCurve —— 输出近似结果。类型应与输入curve的类型一样。
+epsilon     —— 指定近似精度。这是原始曲线与其近似值之间的最大距离。
+closed      —— 如果为true，则近似曲线将闭合（第一个和最后一个顶点连接）。否则，它不会闭合。</pre>
+			<h3>例子</h3>
+			<code><span style="color: #f8f8f2">...</span>
+<span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">approx;</span>
+<span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #f8f8f2">contours.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span>
+<span style="color: #f8f8f2">{</span>
+     <span style="color: #75715e">//近似轮廓，精度与轮廓周长成正比</span>
+     <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">perimeter</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">arcLength(contours[i],</span> <span style="color: #f8f8f2">true);</span> 
+     <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">epsilon</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">perimeter</span><span style="color: #f92672">*</span><span style="color: #ae81ff">0.02</span><span style="color: #f8f8f2">;</span> 
+     <span style="color: #f8f8f2">approxPolyDP(contours[i],</span> <span style="color: #f8f8f2">approx,</span> <span style="color: #f8f8f2">epsilon,</span> <span style="color: #f8f8f2">true);</span> 
+     <span style="color: #f8f8f2">...</span>
+<span style="color: #f8f8f2">}</span>
+<span style="color: #f8f8f2">...</span></code>
+			<pre style="text-align: center;"><img src="../Files/approxpolyDP.jpg" alt="approxpolydp"/><br>左：原轮廓；中：epsilon为0.1*周长时；右：epsilon为0.01*周长时</pre><br /><br /><br />
+			
+			
+			<h2>凸包外观(Convex Hull)</h2>
+			凸包外观看起来与轮廓逼近相似，但并非如此（虽然在某些情况下两者可能提供相同的结果）。在这里，convexHull()函数检查曲线的凸度缺陷并对其进行校正。一般而言，凸曲线是始终凸出或至少平坦的曲线。如果是往内部凹的部分，则称为凸度缺陷。例如，观察下面的“手形”图像。红线显示手的凸包外观。双向箭头标记显示凸度缺陷，这是外观与轮廓的局部最大偏差。<br><br>
+			我在之后的文章会详细提到凸包外观。<br><br>
+			
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>convexHull</strong>(InputArray</span> <span style="color: #f8f8f2">points,</span> <span style="color: #f8f8f2">OutputArray</span> <span style="color: #f8f8f2">hull,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">clockwise</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">false,</span> <span style="color: #f8f8f2">]</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">returnPoints</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">true)</span></code>
+			
+			<h3>参数</h3>
+			<pre>
+points       —— 输入轮廓，vector&lt;Point&gt;或Mat。
+hull         —— 输出。
+clockwise    —— 方向标记。如果为true，则输出的凸包为顺时针方向。否则，其方向为逆时针方向。默认false。
+returnPoints —— true：返回外观点的坐标。
+                false：则返回与外观点相对应的轮廓点的索引（凸包外观是从原来的轮廓选择出重要的顶点以淘汰凸度缺陷）。
+                默认true</pre>
+			
+			<div class="note">points和hull必须是不同的数组，不支持就地处理取代。</div> 
+			<pre style="text-align: center;"><img src="../Files/convexitydefects.jpg" alt="convex hull"/></pre><br><br>
+			
+			<pre style="text-align: right;"><a href="index4.html">轮廓分析(下)</a></pre>
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

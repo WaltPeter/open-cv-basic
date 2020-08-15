@@ -10,63 +10,150 @@
 		<link href="index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
 		<link href="Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
 		
-		<style>
-			a {
-				text-decoration: none !important; 
-			}
-		</style>
-		
 	</head>
 	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
 		<div id="banner">OpenCV基础</div>
+		<div class="welcome"></div>
+		
 		<div class="content">
-        	<h2 style="margin:5px 0px;">官方的安装手册，稍作改动：</h2>
-        	&nbsp; <a href="Installation/index.html">Linux上安装OpenCV</a>
-            <br><br>
-			<h2 style="margin:5px 0px;">小白安装（视频）：</h2>
-        	&nbsp; <a href="install-opencv-ubuntu-cpp/index.html">【小白用】在Ubuntu 16.04上安装OpenCV 3.4.7</a>
-            <br><br>
-			<h2 style="margin:5px 0px;">OpenCV 数据类型：</h2>
-        	<ul>
-			<li><a href="opencv-datatypes/index.html"><h3>OpenCV数据类型（上）</h3></a></li>
-			<li><a href="opencv-datatypes/index2.html"><h3>OpenCV数据类型（下）</h3></a></li>
-			</ul>
-            <h2 style="margin:5px 0px;">OpenCV C++ API之矩阵与图像：</h2>
-        	&nbsp; <a href="opencv-cpp-api/index.html">OpenCV C++ API</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">OpenCV C++ 载入并显示图像：</h2>
-        	&nbsp; <a href="load-and-display-image/index.html">OpenCV载入并显示图像</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">OpenCV C++ 从文件或相机播放视频：</h2>
-        	&nbsp; <a href="cv-videocapture/index.html">从文件或相机播放视频 cv::VideoCapture</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">将图像和视频保存到文件：</h2>
-        	&nbsp; <a href="save-image-and-video-to-file/index.html">将图像和视频保存到文件</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">改变图像亮度：</h2>
-        	&nbsp; <a href="change-brightness/index.html">改变亮度</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">改变图像对比度：</h2>
-        	&nbsp; <a href="change-contrast/index.html">改变对比度</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">equalizeHist：</h2>
-        	&nbsp; <a href="histogram-equalization/index.html">Histogram直方图均衡</a>
-			<br><br>
-            <h2 style="margin:5px 0px;">过滤图像：</h2>
-        	&nbsp; <a href="image-filtering/index.html">过滤图像(介绍)</a>
-			&nbsp; <ul>
-			<li><a href="homogeneous-blur/index.html"><h3>均质模糊</h3></a></li>
-			<li><a href="gaussian-blur/index.html"><h3>高斯模糊</h3></a></li>
-			<li><a href="invert-image/index.html"><h3>反转图像</h3></a></li>
-			</ul>
-			<h2 style="margin:5px 0px;">形态运算(Morphological Operations)：</h2>
-			<ul>
-			<li><a href="erode-image/index.html"><h3>侵蚀图像</h3></a></li>
-			<li><a href="dilate-image/index.html"><h3>膨胀图像</h3></a></li>
-			<li><a href="morphologyex/index.html"><h3>cv::MorphologyEx</h3></a></li>
-			</ul>
+			<table width="100%" style="background: none; " cellspacing="10px">
+				<tr>
+					<td class="item" style="background-image: url('Files/download.jpg')">
+						<h2 style="margin:5px 0px;">Ubuntu OpenCV 安装</h2>
+						<a href="install-opencv-with-contrib-ubuntu/index.html">OpenCV+Contrib+CUDA</a><br>
+						<a href="install-opencv-ubuntu-cpp/index.html">16.04安装OpenCV 3.4.7</a><br>
+						<a href="Installation/index.html">Linux上安装OpenCV</a>
+					</td>
+					<td class="item" style="background-image: url('Files/bg2.jpg')">
+						<h2 style="margin:5px 0px;">OpenCV 数据类型</h2>
+						<a href="opencv-datatypes/index.html">OpenCV数据类型（上）</a><br>
+						<a href="opencv-datatypes/index2.html">OpenCV数据类型（下）</a>
+					</td>
+					<td class="item" style="background-image: url('Files/create_empty_image.jpg')">
+						<h2 style="margin:5px 0px;">OpenCV C++ API；矩阵与图像</h2>
+        				<a href="opencv-cpp-api/index.html">OpenCV C++ API</a>
+					</td>
+					<td class="item" style="background-image: url('Files/create_empty_image.jpg')">
+						<h2 style="margin:5px 0px;">OpenCV C++ 载入并显示图像</h2>
+        				<a href="load-and-display-image/index.html">OpenCV载入并显示图像</a>
+					</td>
+					<td class="item">
+						<h2 style="margin:5px 0px;">OpenCV C++ 从文件或相机播放视频</h2>
+        				<a href="cv-videocapture/index.html">从文件或相机播放视频 cv::VideoCapture</a>
+					</td>
+					<td class="item">
+						<h2 style="margin:5px 0px;">将图像和视频保存到文件</h2>
+        				<a href="save-image-and-video-to-file/index.html">将图像和视频保存到文件</a>
+					</td>
+					<td class="item" style="background-image: url('Files/roi-img-2.png')">
+						<h2 style="margin:5px 0px;">Region of Interest(ROI)</h2>
+						<a href="region-of-interest/index.html">感兴趣区域</a>
+					</td>
+					<td class="item" style="background-image: url('Files/Brighness Increased.PNG')">
+						<h2 style="margin:5px 0px;">改变图像亮度</h2>
+        				<a href="change-brightness/index.html">改变亮度</a>
+					</td>
+					<td class="item" style="background-image: url('Files/Contrast Increased.PNG')">
+						<h2 style="margin:5px 0px;">改变图像对比度</h2>
+        				<a href="change-contrast/index.html">改变对比度</a>
+					</td>
+					<td class="item" style="background-image: url('Files/correction2.jpg')">
+						<h2 style="margin:5px 0px;">伽马校正 Gamma Correction</h2>
+						<a href="gamma-correction/index.html">伽马校正</a>
+					</td>
+					<td class="item" style="background-image: url('Files/Image blurred with 5x5 Gaussian Kernel.png')">
+						<h2 style="margin:5px 0px;">滤波(模糊)</h2>
+						<a href="image-filtering/index.html">滤波(介绍)</a><br>
+						<a href="homogeneous-blur/index.html">均质模糊</a><br>
+						<a href="gaussian-blur/index.html">高斯模糊</a><br>
+						<a href="invert-image/index.html">反转图像</a>
+					</td>
+					<td class="item" style="background-image: url('Files/mean-shift-filtering-clown.png')">
+						<h2 style="margin:5px 0px;">滤波(续)</h2>
+						<a href="image-filtering/index2.html">均值偏移滤波(Mean Shift Filtering)</a><br>
+					</td>
+					<td class="item" style="background-image: url('Files/edge-detection.jpg.png')">
+						<h2 style="margin:5px 0px;">滤波(边缘检测)</h2>
+						<a href="edge-detection/index.html">Canny边缘检测与Sobel理论</a><br>
+						<a href="edge-detection/index2.html">霍夫线变换检测直线</a>
+					</td>
+					<td class="item" style="background-image: url('Files/Image eroded with 5 x 5 kernel.png')">
+						<h2 style="margin:5px 0px;">形态运算(Morphological Operations)</h2>
+						<a href="erode-image/index.html">侵蚀图像</a><br>
+						<a href="dilate-image/index.html">膨胀图像</a><br>
+						<a href="morphologyex/index.html">cv::MorphologyEx</a>
+					</td>
+					<td class="item" style="background-image: url('Files/Histogram Equalization of Color Image.PNG')">
+						<h2 style="margin:5px 0px;">equalizeHist</h2>
+        				<a href="histogram-equalization/index.html">Histogram直方图均衡</a>
+					</td>
+					<td class="item" style="background-image: url('Files/300px-YCbCr-CbCr_Scaled_Y50.png')">
+						<h2 style="margin:5px 0px;">颜色空间</h2>
+						<a href="image-segmentation-using-colorspace/index.html">颜色空间</a><br>
+						<a href="image-segmentation-using-colorspace/index2.html">使用颜色空间进行图像分割</a><br>
+						<a href="image-segmentation-using-colorspace/index3.html">使用颜色空间进行图像分割示例</a>
+					</td>
+					<td class="item" style="background-image: url('Files/draw_example_3.png');">
+						<h2 style="margin:5px 0px;">绘画功能</h2>
+						<a href="drawing-functions/index.html">基本绘画功能</a><br>
+						<a href="drawing-functions/index2.html">绘画轮廓/多边形</a>
+					</td>
+					<td class="item" style="background-image: url('Files/find_contours_example_2.jpg.png');">
+						<h2 style="margin:5px 0px;">结构分析和形状描述</h2>
+						<a href="structural-analysis-and-shape-descriptors/index.html">轮廓检测</a><br>
+						<a href="structural-analysis-and-shape-descriptors/index2.html">轮廓阶层</a><br>
+						<a href="structural-analysis-and-shape-descriptors/index3.html">轮廓分析(上)</a><br>
+						<a href="structural-analysis-and-shape-descriptors/index4.html">轮廓分析(下)</a>
+					</td>
+					<td class="item" style="background-image: url('Files/find_contours_example_2.jpg.png');">
+						<h2 style="margin:5px 0px;">结构分析和形状描述(续)</h2>
+						<a href="structural-analysis-and-shape-descriptors/index5.html">凸包外观(Convex Hull)</a><br>
+						<a href="structural-analysis-and-shape-descriptors/index6.html">判断形状/approxPolyDP</a>
+					</td>
+					<td class="item" style="background-image: url('Files/find_contours_example_2.jpg.png');">
+						<h2 style="margin:5px 0px;">结构分析和形状描述(完)</h2>
+						<a href="structural-analysis-and-shape-descriptors/index7.html">点与多边形测试(Point-in-Polygon Test)</a><br>
+						<a href="structural-analysis-and-shape-descriptors/index8.html">关于minAreaRect获得的rotatedRect之angle</a>
+					</td>
+				</tr>
+<!--
+				<tr>
+					<td class="item">
+						
+					</td>
+					<td class="item">
+						
+					</td>
+					<td class="item">
+						
+					</td>
+				</tr>
+-->
+			</table> 
+            
+			
 			
             
         </div>
+		<script type="text/javascript" src="./index.js"></script>
 	</body>
 </html>

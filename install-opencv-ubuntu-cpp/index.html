@@ -11,6 +11,25 @@
 		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
 	</head>
 	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
 		<div id="banner">【小白用】在Ubuntu 16.04上安装OpenCV 3.4.7</div>
 		<div class="content">
 			
@@ -81,4 +100,5 @@ int main(int argc, char** argv)
 			</pre>
 			</div>
 	</body> 
+	<script type="text/javascript" src="../index.js"></script>
 </html>

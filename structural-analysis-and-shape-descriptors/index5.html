@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 凸包外观(Convex Hull)">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>凸包外观(Convex Hull)</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">凸包外观(Convex Hull)</div>
+		<div class="content">
+			
+			<h1>凸包外观(Convex Hull)</h1>
+			
+			<h2>什么是Convex Hull？</h2>
+			<strong>Convex</strong> —— 形容形状所有内角不得大于180度。非凸包形状称为非凸形或凹形(Concave)。图中显示了凸形和非凸形的示例：
+			<pre style="text-align: center;"><img src="../Files/Convex-Concave.png" alt="convex-concave"/></pre>
+			
+			<strong>Hull</strong> —— 物体的外观或形状。<br><br>
+			因此，形状或一组点的Convex Hull是围绕这些点或形状的紧密拟合凸边界。<br><br>
+			
+			下图显示以上例子个别的凸包外观。
+			<pre style="text-align: center;"><img src="../Files/convex-hull.jpg" alt="convex hull"/><br>凸对象的凸包只是其边界。凹形的凸包是最紧密地包围它的凸形边界。</pre><br /><br /><br />
+			
+			<h2>Gift Wrapping 算法</h2>
+			我想送你们一个礼物，但是挑选我很害怕选择礼物，如果这不是你想要的，请原谅我。无论如何，这里是点的随机分布，我们如何找到其凸包？查找凸包的算法通常称为Gift Wrapping(“礼品包装”)算法。下面讨论Gift Wrapping算法的一个发展。<br><br>
+			
+			<h3>Jarvis March算法</h3><a href="https://en.wikipedia.org/wiki/Gift_wrapping_algorithm">[维奇百科]</a>
+			<pre style="text-align: center;"><img src="../Files/animation-jarvis-march-alogrithm.gif" alt="animation"/></pre>
+			<h4>伪代码</h4>
+			<pre><strong>algorithm</strong> jarvis(S) <strong>is</strong>
+    // S 是输入的点列
+    // P 将是输出的凸包外观点列。最终长度为i.
+    pointOnHull = S 里最左边的点 // 包括为凸包的第一个点
+    i := 0
+    <strong>repeat</strong>
+        P[i] := pointOnHull
+        endpoint := S[0]      // 凸包外观上候选边的初始终点
+        <strong>for</strong> j from 0 to |S| <strong>do</strong>
+            // endPoint==pointOnHull是一种罕见的情况，仅当j==1或循环尚未设置更好的端点时才可能发生
+            <strong>if</strong> (endpoint == pointOnHull) or (S[j] 在从P[i]到endpoint的直线的左边) <strong>then</strong>
+                endpoint := S[j]   // 发现更大的左偏移，更新终点
+        i := i + 1
+        pointOnHull = endpoint
+    <strong>until</strong> endpoint = P[0]      // 包裹到第一个外观点</pre>
+			<h4>时间复杂度</h4>
+			<pre>O(nh)<br>其中n是输入点数，h是凸包中的点数</pre><br><br>
+			
+			<h3>葛立恒扫描法(Graham's scan)</h3><a href="https://en.wikipedia.org/wiki/Graham_scan">[维奇百科]</a>
+			
+			<pre style="text-align: center;"><img src="../Files/animation-graham-scan.gif" alt="graham"/></pre>
+			
+			<h4>伪代码</h4>
+			
+			<pre># 当ccw函数的值为正的时候，三个点为“左转”（counter-clockwise turn），如果是负的，则是“右转”的，而如果
+# 为0，则三点共线，因为ccw函数计算了由p1,p2,p3三个点围成的三角形的有向面积
+function ccw(p1, p2, p3):
+    return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x)</pre>
+			
+			<pre><strong>let</strong> points 为输入的点列
+<strong>let</strong> stack = 空的堆栈，输出点列
+
+<strong>find</strong> 最下方且最左边的点，称为 P0
+<strong>sort</strong> points 根据与 P0 之间的极角，如果数个点有着同样的极角，则仅保存那个最远距离的点，其他都抛弃
+
+<strong>for</strong> point <strong>in</strong> points:
+    # 如果顺时针旋转到达该点，则从堆栈中pop出最后一个点
+    <strong>while</strong> <strong>count</strong> stack &gt; 1 and <strong>ccw</strong>(next_to_top(stack), top(stack), point) &lt; 0:
+        <strong>pop</strong> stack
+    <strong>push</strong> point <strong>to</strong> stack
+<strong>end</strong></pre>
+			
+			<pre style="text-align: center;"><img src="../Files/graham_Scan.svg.png" style="background: white;" alt="graham"/><br>可见，PAB和ABC是逆时针的，但BCD不是。该算法会检测到这种情况，并丢弃先前选择的线段，直到逆时针旋转(在这种情况下为ABD)。</pre>
+			
+			<h4>时间复杂度</h4>
+			<pre>O(n log n)<br>其中n是输入点数，h是凸包中的点数</pre><br><br>
+			
+			<h3>Chan算法</h3>
+			<a href="https://en.wikipedia.org/wiki/Chan%27s_algorithm">[维奇百科]</a><br>
+			Chan算法是结合Graham和Jarvis算法的一个优化。在这里，我们将点分成较小的包(m个包)，并使用Graham扫描找到它们的凸包，然后从孔中取出顶点并将其插入Jarvis March算法。
+			<pre style="text-align: center;"><img src="../Files/animation-chan-algorithm.gif" alt="chan's"/><br>Chan算法的2D演示。注意，该算法会任意划分点，而不一定是x坐标。</pre>
+			
+			<h4>时间复杂度</h4>
+			<pre>O(n log h)<br>其中n是输入点数，h是凸包中的点数</pre><br><br><br>
+			
+			我们上面认识了最初的一些Gift Warpping算法，可见复杂度并不是线性的(不是最快)。所以，O(n)算法可行吗？答案是肯定的，但是找到用于凸包的线性算法，那整个<a href="http://cgm.cs.mcgill.ca/~athens/cs601/">历史</a>其实有点令人尴尬的。<br><br>
+			
+			Sklansky在1972年发布了第一个O(n)算法。之后却被证明它是错误的。在1972年至1989年之间，发布了16种不同的线性算法，后来发现其中7种是不正确的！<br><br>
+
+			这让我想起了我在大学里听到的一个笑话：数学中的每个困难问题都有一个简单易懂的错误解决方案。<br><br>
+			
+			更尴尬的是OpenCV内convexHull使用的算法却是Sklansky(1982)的算法。这个算法在发布后的几个月后被证明是错误的。<br><br>
+			
+			无论如何，它仍然是一种流行的算法，并且在大多数情况下，它可以产生正确的结果。现在让我们看看如何使用它。<br><br><br>
+			
+			<h2>示例</h2>
+			我们拿以下图片为例：
+			<pre style="text-align: center;"><img src="../Files/convex-hull-0.png" alt="convex hull"/></pre>
+			
+			<h3>预处理/二进制</h3>
+			我们先读取图像，imread函数，我们能直接使用IMREAD_GRAYSCALE选项，这样就不用再cvtColor至灰度图(Grayscale)了。之后我使用模糊来去图像杂质。再使用阈值来获取二进制图像。
+			
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt; </span>
+<span style="color: #75715e">#include &lt;vector&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img;</span>
+     <span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;sample.jpg&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">IMREAD_GRAYSCALE);</span> <span style="color: #75715e">// 读取灰度图</span>
+
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">blur_img,</span> <span style="color: #f8f8f2">thresh;</span>
+     <span style="color: #f8f8f2">blur(img,</span> <span style="color: #f8f8f2">blur_img,</span> <span style="color: #f8f8f2">Size(</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">));</span> <span style="color: #75715e">// 模糊</span>
+     <span style="color: #f8f8f2">threshold(blur_img,</span> <span style="color: #f8f8f2">thresh,</span> <span style="color: #ae81ff">200</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">THRESH_BINARY_INV);</span> <span style="color: #75715e">// 阈值</span>
+<span style="color: #f8f8f2">...</span></code>
+			<pre style="text-align: center;"><img src="../Files/convex-hull-1.png" alt="after preprocess"/><br>我们使用THRESH_BINARY_INV模式，因为前几章提到，“需检测的物体是白色，背景是黑色”原则</pre>
+			
+			<h3>轮廓检测</h3>
+			有了二进制图像，就可以轮廓检测了。
+			<code>...
+     <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span> 
+     <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec4i</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">hierarchy;</span>
+     <span style="color: #f8f8f2">findContours(thresh,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">hierarchy,</span> <span style="color: #f8f8f2">RETR_TREE,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE);</span>
+     <span style="color: #f8f8f2">drawContours(img,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">127</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+...</code>
+			
+			<pre style="text-align: center;"><img src="../Files/convex-hull-2.png" alt="contours"/><br>绘出的轮廓是灰色的</pre>
+			
+			<h3>凸包外观</h3>
+			之后就能展示凸包功能：
+			<code>...<br>     <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> 
+     <span style="color: #f8f8f2">hull(contours.size());</span>
+     <span style="color: #66d9ef">for</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #f8f8f2">contours.size();</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span>
+          <span style="color: #f8f8f2">convexHull(contours[i],</span> <span style="color: #f8f8f2">hull[i],</span> <span style="color: #f8f8f2">false);</span>
+     <span style="color: #f8f8f2">drawContours(img,</span> <span style="color: #f8f8f2">hull,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;convex hull&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">img);</span> 
+     <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">destroyAllWindows();</span> 
+     
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span></code>
+			<pre style="text-align: center;"><img src="../Files/convex-hull-3.png" alt="result"/><br>结果</pre>
+			
+
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

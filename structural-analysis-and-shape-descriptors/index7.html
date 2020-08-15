@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 点与多边形测试(Point-in-Polygon Test)">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>点与多边形测试(Point-in-Polygon Test)</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">点与多边形测试(Point-in-Polygon Test)</div>
+		<div class="content">
+			
+			<h1>点与多边形测试(Point-in-Polygon Test)</h1>
+			我们有了轮廓，或，我们使用了一些点围出一个范围。现在我们有了一个新的点，我们想要计算这个点是否在范围当中。<br><br>
+			
+			这时我们就能使用“点与多边形测试”。<br><br>
+			
+			<code><span style="color: #66d9ef">double</span> <span style="color: #f8f8f2"><strong>pointPolygonTest</strong>(InputArray</span> <span style="color: #f8f8f2">contour,</span> <span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">pt,</span> <span style="color: #66d9ef">bool</span> <span style="color: #f8f8f2">measureDist)</span></code>
+			
+			该函数计算该点是在轮廓内围，外围还是在边缘上(或与顶点重合)。它分别返回正(内围)，负(外围)或零(边缘)值。当measureDist = false时，返回值分别为+1，-1或0。否则true，则返回值是该点与最近的轮廓边之间的有符号距离。
+			
+			<h3>参数</h3>
+			<pre>
+contour     —— 输入轮廓。
+pt          —— 需测试的点。
+measureDist —— 如果为true，则该函数估计从点到最近的轮廓边的有符号距离。否则，该功能仅检查该点是否在轮廓内。</pre>
+			
+			<h3>返回</h3>
+			<pre>double</pre><br><br>
+			
+			<h2>示范</h2>
+			我们使用这张图为例： 
+			<pre style="text-align: center;"><img src="../Files/contour-map.jpg" alt="source"/></pre>
+			
+			这个图像会比较简单，我们先导入图像，然后以灰度图格式进行阈值二进制化图像，再检测轮廓。
+			
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;vector&gt; </span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">gray;</span> 
+<span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span> 
+<span style="color: #66d9ef">void</span> <span style="color: #a6e22e">onMouseHandle</span><span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">int</span><span style="color: #f8f8f2">,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span><span style="color: #f8f8f2">);</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">gray</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;contour-map.jpg&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">threshold(gray,</span> <span style="color: #f8f8f2">gray,</span> <span style="color: #ae81ff">180</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">THRESH_BINARY_INV);</span> 
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/point-in-polygon-thresh.png" alt="thresh"/></pre>
+			
+			白色的形状都明显看得出了，我们就可以检测这些轮廓。
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #75715e">// 检测轮廓</span>
+     <span style="color: #f8f8f2">findContours(gray,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">RETR_EXTERNAL,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE);</span> 
+
+     <span style="color: #75715e">// 显示所有轮廓</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #a6e22e">canvas</span><span style="color: #f8f8f2">(gray.size(),</span> <span style="color: #f8f8f2">CV_8UC3,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">));</span> <span style="color: #75715e">// 创建空Mat</span>
+     <span style="color: #f8f8f2">drawContours(canvas,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">127</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/point-in-polygon-contours.png" alt="contours"/></pre>
+			
+			我们设置鼠标操作函数。获取鼠标坐标，我们与其和所有轮廓进行点与多边形测试，在范围内的轮廓我们以红色绘之。
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #75715e">// 设置鼠标操作回调函数</span>
+     <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;window&quot;</span><span style="color: #f8f8f2">);</span>
+     <span style="color: #f8f8f2">setMouseCallback(</span><span style="color: #e6db74">&quot;window&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">onMouseHandle);</span> 
+
+     <span style="color: #75715e">// 等待键盘输入退出</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;window&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">canvas);</span> 
+     <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">destroyAllWindows();</span> 
+
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span>
+
+<span style="color: #66d9ef">void</span> <span style="color: #f8f8f2">onMouseHandle(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">event,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">x,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">y,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">flags,</span> <span style="color: #66d9ef">void</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">param)</span> <span style="color: #f8f8f2">{</span> 
+     <span style="color: #75715e">// 新Mat</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">canvas(gray.size(),</span> <span style="color: #f8f8f2">CV_8UC3,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">));</span> 
+
+     <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(event</span> <span style="color: #f92672">==</span> <span style="color: #f8f8f2">CV_EVENT_MOUSEMOVE)</span> <span style="color: #f8f8f2">{</span>   <span style="color: #75715e">//鼠标移动消息</span>
+          <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">contours.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+               <span style="color: #75715e">// 点与多变形测试</span>
+               <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">distance</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">pointPolygonTest(contours[i],</span> <span style="color: #f8f8f2">Point(x,</span> <span style="color: #f8f8f2">y),</span> <span style="color: #f8f8f2">true);</span> 
+
+               <span style="color: #75715e">// 在轮廓内</span>
+               <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(distance</span> <span style="color: #f92672">&gt;=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+                    <span style="color: #f8f8f2">drawContours(canvas,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">i,</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> 
+
+               <span style="color: #75715e">// 不在轮廓内</span>
+               <span style="color: #f8f8f2">}</span> <span style="color: #66d9ef">else</span> <span style="color: #f8f8f2">{</span>
+                    <span style="color: #f8f8f2">drawContours(canvas,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">i,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">127</span><span style="color: #f8f8f2">),</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> 
+               <span style="color: #f8f8f2">}</span>
+          <span style="color: #f8f8f2">}</span>
+          <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;window&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">canvas);</span> 
+     <span style="color: #f8f8f2">}</span>
+<span style="color: #f8f8f2">}</span></code>
+			
+			结果如下：
+			<pre style="text-align: center;"><video autoplay="" loop="" muted="" width="100%"><source src="../Files/point-in-polygon-result.mp4" type="video/mp4">Your browser does not support the video tag.</video></pre>
+			
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

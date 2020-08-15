@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV Canny边缘检测与Sobel理论">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>Canny边缘检测与Sobel理论</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">Canny边缘检测与Sobel理论</div>
+		<div class="content">
+			
+			<h1>Canny边缘检测器</h1>
+			
+			由John F. Canny在1986年开发。Canny算法也被称为最佳检测器(optimal detector)，旨在满足三个主要标准：
+
+			<pre><ul><li>低错误率：意味着仅存在边缘的良好检测。</li>
+<li>良好的定位：必须将检测到的边缘像素与实际边缘像素之间的距离最小化。</li>
+<li>最小响应：每个边缘只有一个检测器响应。</li></ul></pre>
+
+			<h3>原理</h3>
+			<ol>
+				<li>使用高斯滤波图像</li>
+				<li>找到图像的强度梯度。为此，我们遵循类似于Sobel的过程：<br>
+				
+					<h2>索贝尔 (Sobel) 算法理论</h2>
+					图像中所有像素其实也就是个二维的离散函数，那么我们将它求导会得到什么？<br>
+					假设我们要检测图像中存在的边缘。例如：
+
+					<pre style="text-align: center;"><img src="../Files/edge-lena.jpg" alt="lena"/></pre>
+
+					可以轻松地注意到，在边缘处，像素强度以急速的方式变化。表达变化的好方法是使用导数。<br><br>
+					假设我们有一个1D图像。像素值的迅速变化部分就是图像中的边缘。
+
+					<pre style="text-align: center;"><img src="../Files/edge-function.jpg" alt="function"/></pre>
+					求一阶导数：
+					<pre style="text-align: center;"><img src="../Files/edge-derivative.jpg" alt="derivative"/></pre>
+
+					假设要操作的图像是I<br>
+					计算两个导数：<br>
+					<ol style="list-style-type:lower-alpha">
+						<li>横向变化：<br>
+							通过将I与奇数大小的内核𝐺<sub>𝑥</sub>卷积来计算。例如，内核大小3，𝐺<sub>𝑥</sub>计算为：
+							<pre style="text-align: center;"><img src="../Files/edge-sobel-g_x.PNG" width="200" alt="g_x"/></pre>
+						</li>
+						<li>
+							纵向变化：<br>
+							通过将I与奇数大小的内核𝐺<sub>𝑦</sub>卷积来计算。例如，内核大小3，𝐺<sub>𝑦</sub>计算为：
+							<pre style="text-align: center;"><img src="../Files/edge-sobel-g_y.PNG" width="200" alt="g_y"/></pre>
+						</li>
+					</ol>
+					在图像的每个点上，我们通过结合以上两个结果来计算该点的梯度近似值：
+					<pre style="text-align: center;"><img src="../Files/edge-sobel-g.PNG" width="200" alt="g"/></pre>
+					
+				</li>
+				<li>方向舍入为四个可能的角度之一(即0、45、90或135)。</li>
+				<li>应用非最大抑制。这将删除不视为边缘一部分的像素。因此，将仅保留细线(候选边缘)。</li>
+				<li>最后一步：迟滞。Canny使用两个阈值(Upper和Lower)：
+					<pre>
+					<ul style="list-style-type:disc"><li>如果像素梯度高于上限阈值，则该像素被接受为边缘。</li><br><li>如果像素梯度值低于下阈值，则将其拒绝。</li><br><li>如果像素梯度在两个阈值之间，则仅当它连接到高于上限阈值的像素时才被接受。</li><br><li>Canny建议使用2:1到3:1的上/下比例。</li><br></ul></pre>
+				</li>
+			</ol><br><br>
+			
+			<h2>例子</h2>
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">th1</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">th2</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">;</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #75715e">// 从默认相机获取图像</span>
+    <span style="color: #f8f8f2">VideoCapture</span> <span style="color: #f8f8f2">capture(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+
+    <span style="color: #f8f8f2">namedWindow(</span><span style="color: #e6db74">&quot;paras&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;th1&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;paras&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">th1,</span> <span style="color: #ae81ff">500</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">createTrackbar(</span><span style="color: #e6db74">&quot;th2&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #e6db74">&quot;paras&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">th2,</span> <span style="color: #ae81ff">500</span><span style="color: #f8f8f2">);</span>
+    
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">frame,</span> <span style="color: #f8f8f2">cannyImg;</span>
+
+    <span style="color: #66d9ef">while</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span>
+    <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">capture</span> <span style="color: #f92672">&gt;&gt;</span> <span style="color: #f8f8f2">frame;</span>
+        <span style="color: #f8f8f2">cvtColor(frame,</span> <span style="color: #f8f8f2">frame,</span> <span style="color: #f8f8f2">CV_BGR2GRAY);</span>
+        
+        <span style="color: #f8f8f2">Canny(frame,</span> <span style="color: #f8f8f2">cannyImg,</span> <span style="color: #f8f8f2">th1,</span> <span style="color: #f8f8f2">th2);</span>
+        <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;frame&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">frame);</span>
+        <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;cannyImg&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">cannyImg);</span>
+        
+        <span style="color: #66d9ef">if</span><span style="color: #f8f8f2">(waitKey(</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&#39;q&#39;</span><span style="color: #f8f8f2">)</span>
+            <span style="color: #66d9ef">break</span><span style="color: #f8f8f2">;</span>
+    <span style="color: #f8f8f2">}</span>
+    
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/edge-canny.jpg" width="500" alt="canny"/></pre>
+			
+			
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 霍夫线变换检测直线">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>霍夫线变换检测直线</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">霍夫线变换检测直线</div>
+		<div class="content">
+			
+			<h1>霍夫线变换</h1>
+			
+			<pre style="text-align: center;"><img src="../Files/hough-example-1.png" alt="example"/></pre>
+			<pre style="text-align: center;"><img src="../Files/hough-example-2.png" alt="example"/></pre>
+			
+			<ol style="font-size: 150%; padding-left: 25px;">
+				<li>霍夫线变换是用于检测直线的变换。</li>
+				<li>为了应用变换，首先需要边缘检测预处理。</li>
+			</ol><br><br>
+			
+			<h2>原理</h2>
+			<ol style="font-size: 150%; padding-left: 25px;">
+				<li>两种坐标：
+					<ol style="list-style: lower-latin;">
+						<li>笛卡尔坐标系 —— 𝑦 = 𝑘𝑥 + 𝑞 </li>
+						<li>霍夫空间 —— 𝑞 = −𝑥𝑘 + 𝑦 </li>
+					</ol>
+				</li> 
+				<li>
+					笛卡尔坐标系中一条直线，对应霍夫空间中的一个点
+					<pre style="text-align: center;"><img src="../Files/hough-space-1.PNG" alt="hough space"/></pre>
+				</li>
+				<li>
+					笛卡尔坐标系中的一个点，对应霍夫空间中一条直线
+					<pre style="text-align: center;"><img src="../Files/hough-space-2.PNG" alt="hough space"/></pre>
+				</li>
+				<li>基于以上两点，如果给与几个点，它们换算成霍夫方程后如果存在共同的交叉点，则这几个点是共直线。</li>
+			</ol><br><br>
+			
+			<h2>例子</h2>
+			
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt; </span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span> 
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span>
+<span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;Sudoku.jpg&quot;</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;src&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">src);</span>
+
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">mid,</span> <span style="color: #f8f8f2">dst;</span>
+    <span style="color: #f8f8f2">dst.create(src.size(),CV_8U);</span>
+
+    <span style="color: #f8f8f2">Canny(src,</span> <span style="color: #f8f8f2">mid,</span> <span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">100</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">);</span>
+
+    <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Vec4i</span><span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">lines;</span>
+    <span style="color: #f8f8f2">HoughLinesP(mid,</span> <span style="color: #f8f8f2">lines,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">CV_PI</span><span style="color: #f92672">/</span><span style="color: #ae81ff">180</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">50</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">10</span><span style="color: #f8f8f2">);</span>
+
+    <span style="color: #75715e">//画出每条线段</span>
+    <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">lines.size();</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">++</span><span style="color: #f8f8f2">)</span>
+    <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">Vec4i</span> <span style="color: #f8f8f2">line</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">lines[i];</span>
+        <span style="color: #f8f8f2">line(dst,</span> <span style="color: #f8f8f2">Point(line[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">],line[</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">]),</span> <span style="color: #f8f8f2">Point(line[</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">],line[</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">]),</span> <span style="color: #f8f8f2">Scalar(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">));</span>
+    <span style="color: #f8f8f2">}</span>
+
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;mid&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">mid);</span>
+    <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;dst&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">dst);</span>
+    <span style="color: #f8f8f2">waitKey();</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span></code>
+
+			
+			
+			
+			
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			

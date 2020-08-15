@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 伽马校正">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>伽马校正</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">伽马校正</div>
+		<div class="content">
+			
+			<h1>伽马校正(Gamma Correction)</h1>
+			伽玛校正通过对输入值进行非线性变换，可以达到校正图像的亮度：
+			<pre style="text-align: center;"><img src="../Files/gamma_correction_formula.png" alt="O=(I/255)^γ * 255"/><br>伽马校正使用的非线性方程：I为输入像素，O为输出像素，γ为伽马值</pre>
+			<br>
+			由于此关系是非线性的，因此每个像素的变换效果都不相同，取决于其原始值。<br><br>
+			<pre style="text-align: center;"><img src="../Files/Basic_Linear_Transform_Tutorial_gamma.png" alt=""/><br>输入像素值与输出像素值与伽马值之间的关系</pre><br><br>
+			
+			当γ&lt;1时，原本暗的区域将变亮，直方图将向右移动，而当γ&gt;1时则相反。<br><br>
+			
+			<h2>例子：校正曝光不足的图像</h2>
+			使用上两章提到的变换对比度和亮度方法，以下图片使用α=1.3，β=40校正：
+			<pre style="text-align: center;"><img src="../Files/correction1.jpg" alt=""/><br>α=1.3，β=40</pre>
+			
+			可见，整体亮度已得到改善，但是你能发现经过处理后的云色彩已过度饱和(摄影中称为highlight clipping)。<br><br>
+			
+			接下来以下图片使用伽马校正(γ=0.4): 
+			<pre style="text-align: center;"><img src="../Files/correction2.jpg" alt=""/><br>γ=0.4</pre>
+			
+			伽玛校正在校正图像之余对图像的饱和度并没有太大的影响，因为映射是非线性的，所以不像上个方法那样出现数值饱和。<br><br>
+			<div class="note" style="text-align: center; background: #313547;">
+				<img src="../Files/correction_histogram1.png" alt=""/>
+				<img src="../Files/correction_histogram0.png" alt=""/>
+				<img src="../Files/correction_histogram2.png" alt=""/><br>上：α，β校正后的直方图；中：原图的直方图；下：γ校正后的直方图</div>
+			上面比较了三个图像的直方图（三个直方图之间的y范围不同）。大多数像素值都位于原始图像直方图的下部。经过α，β校正后，由于饱和度以及右移，我们可以在255处观察到一个大峰。经过伽玛校正后，直方图虽然向右移动，但是暗区域中的像素比亮区域中的像素移动更多。<br><br>
+			
+			伽马校正代码：
+			<code>    <span style="color: #f8f8f2">Mat</span> <span style="color: #a6e22e">lookUpTable</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">256</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">CV_8U);</span>
+    <span style="color: #f8f8f2">uchar</span><span style="color: #f92672">*</span> <span style="color: #f8f8f2">p</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">lookUpTable.ptr();</span>
+    <span style="color: #66d9ef">for</span><span style="color: #f8f8f2">(</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">=</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span> <span style="color: #f92672">&lt;</span> <span style="color: #ae81ff">256</span><span style="color: #f8f8f2">;</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span>
+        <span style="color: #f8f8f2">p[i]</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">saturate_cast</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">uchar</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(pow(i</span> <span style="color: #f92672">/</span> <span style="color: #ae81ff">255.0</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">gamma_)</span> <span style="color: #f92672">*</span> <span style="color: #ae81ff">255.0</span><span style="color: #f8f8f2">);</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">res</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">img.clone();</span>
+    <span style="color: #f8f8f2">LUT(img,</span> <span style="color: #f8f8f2">lookUpTable,</span> <span style="color: #f8f8f2">res);</span></code>
+			查找表用于提高计算性能，因为只需要计算一次256个值。
+			
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			
+			
+			
+			
+			
+			
+			
+			
