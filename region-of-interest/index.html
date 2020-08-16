@@ -117,7 +117,15 @@
 			编译运行后可获得以下结果：
 			<pre style="text-align: center;"><img src="../Files/roi-img-2.png" alt="orig img"/></pre>
 			<pre style="text-align: center;"><img src="../Files/roi-img-3.png" alt="roi" /></pre>
-			可发现，我们在roi上绘画的四边形，在原图上也有，而且我们并没有在原图上绘画任何东西。这证明了感兴趣区域和原图像是公用同个内存空间的。
+			可发现，我们在roi上绘画的四边形，在原图上也有，而且我们并没有在原图上绘画任何东西。这证明了感兴趣区域和原图像是公用同个内存空间的。<br><br>
+			
+			<h2>那如何是ROI独立？</h2>
+			与其使用以下代码：
+			<code style="text-decoration: line-through;"><span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img2</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">img1(cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Rect(x,y,width,height))</span></code>
+			我们多调用一个Mat::copyTo()函数：
+			<code><span style="color: #f8f8f2">cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img2;</span> 
+<span style="color: #f8f8f2">img1(cv</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">Rect(x,y,width,height)).copyTo(img2);</span> </code>
+			即可。
 
 		</div>
 		<script type="text/javascript" src="../index.js"></script>

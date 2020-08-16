@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="图像金字塔 OpenCV">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>图像金字塔</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">图像金字塔</div>
+		<div class="content">
+			
+			<h1>图像金字塔</h1>
+			
+			通常，我们需要将图像转换为与原始图像不同的尺寸。为此，有两种操作可能的选择：
+			<ol>
+				<li>放大图像(Upsize)或</li>
+				<li>缩小尺寸(Downsize)。</li>
+			</ol>
+			尽管OpenCV中有一个几何转换函数可以按实际大小调整图像大小（<strong>resize</strong>()），但在本章中，我们首先分析广这泛应用于各种视觉应用中的图像金字塔的用法。<br><br>
+			
+			举个例子，在一些著名的CNN神经网络中(如ResNet、YOLO、SSD等)，它们都使用了图像金字塔获取输入图像的特征。
+			<pre style="text-align: center;"><img src="../Files/image-pyramid-yolo.png" alt="pyramid"/></pre>
+			当然，各个框架都有着稍微不一样的特征提取方式。这里就不细谈了。<br><br>
+			
+			图像金字塔是图像的集合。所有图像均来自单个原始图像。图像被连续降采样直到达到某个所需的停止点。<br>
+			有两种常见的图像金字塔：
+			<ul>
+				<li><strong>高斯金字塔(Gaussian Pyramid)</strong>：用于对图像进行下采样(Downsample)</li>
+				<li><strong>拉普拉斯金字塔(Laplacian Pyramid)</strong>：高斯金字塔的相反。用于从金字塔较低(分辨率较低)的图像中重建上采样(Upsample)的图像</li>
+			</ul>
+			在本教程中，我们将使用高斯金字塔。<br><br>
+			
+			<h2>高斯金字塔</h2>
+			
+			将金字塔想象成一组图层，其中图层越高，尺寸越小。
+			
+			<pre style="text-align: center;"><img src="../Files/pyramid.png" alt="pyramid"/></pre>
+
+			每层都从下到上编号，因此第(i+1)层（表示为G<sub>i+1</sub>）小于第i层（G<sub>i</sub>）。<br><br>
+			为了产生高斯金字塔中的层(i+1)，我们执行以下操作：
+
+			<ol>
+				<li>
+					将G<sub>i</sub>与高斯核卷积：
+					<pre style="text-align: center;"><img src="../Files/image-pyramid-gaussian.PNG" width="200" alt="gaussian kernel"/></pre>
+				</li>
+				<li>删除所有偶数行和列。</li>
+			</ol>
+			
+			可以轻松地注意到，生成的图像将恰好是其前身面积的四分之一。在输入图像G<sub>0</sub>(原始图像)上重复此过程将生成整个金字塔。<br><br>
+			
+			上面的步骤对图像降采样很有用。如果要增大它会怎样？：填充零的列
+			<ol>
+				<li>首先，将图像放大为每个维度的两倍，并添加新的偶数行</li>
+				<li>使用上面显示的相同内核乘以4进行卷积，以近似“丢失像素”的值</li>
+			</ol><br>
+			这两个过程（如上所述的下采样和上采样）可以使用OpenCV函数pyrUp()和pyrDown()实现，正如我们将在下面的示例代码中看到的那样：
+			
+			<div class="note">注：当我们减小图像尺寸时，实际上是在丢失图像信息。</div>
+			
+			<h3>函数</h3>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>pyrDown</strong>(Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">dst,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Size</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">dstsize</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Size(),</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">borderType</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">BORDER_DEFAULT)</span></code>
+			模糊图像并对其进行下采样。<br>
+			默认情况下，输出图像的大小计算为Size((src.cols + 1)/ 2, (src.rows + 1)/ 2)，但是在任何情况下，都应满足以下条件：
+			<pre>|dstsize.width * 2-src.cols|≤2 <br>|dstsize.height * 2-src.rows|≤2</pre>
+			
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>pyrUp</strong>(Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">dst,</span> <span style="color: #66d9ef">const</span> <span style="color: #f8f8f2">Size</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">dstsize</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">Size(),</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">borderType</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">BORDER_DEFAULT)</span></code>
+			上采样图像，然后使其模糊。<br>
+			默认情况下，输出图像的大小计算为Size(src.cols \ * 2, (src.rows \ * 2)，但是在任何情况下，都应满足以下条件：
+			<pre>|dstsize.width-src.cols ∗ 2|≤(dstsize.width mod 2)<br>|dstsize.height-src.rows ∗ 2|≤(dstsize.height mod 2)</pre>
+			
+			<h3>参数</h3>
+			<pre>
+src        —— 输入图像。
+dst        —— 输出图像；它具有指定的大小，并且与src类型相同。
+dstsize    —— 输出图像的大小。
+borderType —— 像素外推方法（不支持BORDER_CONSTANT）</pre>
+			
+			<h3>例子</h3>
+			
+			<code><span style="color: #75715e">#include &lt;iostream&gt;</span>
+<span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+    <span style="color: #f8f8f2">cout</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;</span><span style="color: #ae81ff">\n</span><span style="color: #e6db74"> Zoom In-Out demo </span><span style="color: #ae81ff">\n</span><span style="color: #e6db74"> &quot;</span>
+            <span style="color: #e6db74">&quot;------------------  </span><span style="color: #ae81ff">\n</span><span style="color: #e6db74">&quot;</span>
+            <span style="color: #e6db74">&quot; * [i] -&gt; Zoom in   </span><span style="color: #ae81ff">\n</span><span style="color: #e6db74">&quot;</span>
+            <span style="color: #e6db74">&quot; * [o] -&gt; Zoom out  </span><span style="color: #ae81ff">\n</span><span style="color: #e6db74">&quot;</span>
+            <span style="color: #e6db74">&quot; * [ESC] -&gt; Close program </span><span style="color: #ae81ff">\n</span><span style="color: #e6db74">&quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">endl;</span>
+
+    <span style="color: #75715e">// 读取图像</span>
+    <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">src</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;Lenna-512.png&quot;</span><span style="color: #f8f8f2">);</span>
+
+    <span style="color: #66d9ef">while</span> <span style="color: #f8f8f2">(</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span>
+        <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Demo&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">src);</span>
+        <span style="color: #66d9ef">char</span> <span style="color: #f8f8f2">c</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">char</span><span style="color: #f8f8f2">)waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span>
+        <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(c</span> <span style="color: #f92672">==</span> <span style="color: #ae81ff">27</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span> <span style="color: #66d9ef">break</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">}</span>
+        <span style="color: #66d9ef">else</span> <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(c</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&#39;i&#39;</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span> 
+            <span style="color: #f8f8f2">pyrUp(src,</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">Size(</span> <span style="color: #f8f8f2">src.cols</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">src.rows</span><span style="color: #f92672">*</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">));</span>
+            <span style="color: #f8f8f2">cout</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;** Zoom In: Image x 2&quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">endl;</span>
+        <span style="color: #f8f8f2">}</span> <span style="color: #66d9ef">else</span> <span style="color: #66d9ef">if</span> <span style="color: #f8f8f2">(c</span> <span style="color: #f92672">==</span> <span style="color: #e6db74">&#39;o&#39;</span><span style="color: #f8f8f2">)</span> <span style="color: #f8f8f2">{</span> 
+            <span style="color: #f8f8f2">pyrDown(src,</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">Size(</span> <span style="color: #f8f8f2">src.cols</span><span style="color: #f92672">/</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">src.rows</span><span style="color: #f92672">/</span><span style="color: #ae81ff">2</span> <span style="color: #f8f8f2">));</span>
+            <span style="color: #f8f8f2">cout</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #e6db74">&quot;** Zoom Out: Image / 2 &quot;</span> <span style="color: #f92672">&lt;&lt;</span> <span style="color: #f8f8f2">endl;</span>
+        <span style="color: #f8f8f2">}</span>
+    <span style="color: #f8f8f2">}</span>
+    <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span>
+<span style="color: #f8f8f2">}</span></code>
+			
+			<h3>结果</h3>
+			这是我使用的原图。注意这个图像的大小是512×512像素，512=2<sup>9</sup>，因此降采样不会产生任何错误。
+			<pre style="text-align: center;"><img src="../Files/Lenna-512.png" alt="Lenna-512"/></pre>
+			
+			按下两次‘o’，进行了两次pyrDown()操作，这是新的图像：
+			<pre style="text-align: center;"><img src="../Files/pyramid-down.png" alt="pyramid down"/></pre>
+			
+			再按下两次‘i’，又进行了两次pyrUp()操作。由于我们缩小了图像的大小，因此我们本应损失一些分辨率。最后的输出图如下：
+			<pre style="text-align: center;"><img src="../Files/pyramid-up.png" alt="pyramid up"/></pre>
+			
+			
+			
+        </div>
+<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>

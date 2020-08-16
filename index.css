@@ -192,9 +192,14 @@ img {
 	border-radius: 5px; 
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
 	font-weight: 700; 
 	font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, "sans-serif", "Microsoft YaHei", "Hiragino Sans GB", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, SimSun; 
+}
+
+h4 {
+	border-bottom: 2px solid white; 
+	display: table; 
 }
 
 .white { 

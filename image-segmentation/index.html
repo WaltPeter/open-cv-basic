@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="description" content="OpenCV 基于距离变换和分水岭算法的图像分割">
+        <meta name="keywords" content="OpenCV, C++, Ubuntu, Linux">
+        <meta name="author" content="waltpeter">
+		<title>基于距离变换和分水岭算法的图像分割</title>
+		<link href="../index.css" rel="stylesheet" type="text/css" rev="stylesheet"/>
+		<link href="../Files/opencv.ico" rel="shortcut icon" type="image/x-icon"/>
+	</head>
+	<body>
+		<table id="pre" cellpadding="0px" cellspacing="0px">
+			<tr><td id="pre_content"><div id="load1"></div></td></tr>
+		</table>
+		<script>
+			var load1 = document.getElementById("load1"); 
+			var anitimer1 = setInterval(rotate10deg, 30);
+			var deg1 = 0;  
+			function rotate10deg() {
+				deg1 += 20;
+				// Code for Safari
+				load1.style.WebkitTransform = "rotate(" + deg1 + "deg)"; 
+				// Code for IE9
+				load1.style.msTransform = "rotate(" + deg1 + "deg)"; 
+				// Standard syntax
+				load1.style.transform = "rotate(" + deg1 + "deg)"; 
+			}
+		</script>
+		
+		<div class="bg"></div>
+		<div id="banner">基于距离变换和分水岭算法的图像分割</div>
+		<div class="content">
+			
+			<h1>基于距离变换和分水岭算法的图像分割</h1>
+			
+			<pre style="text-align: center;"><img src="../Files/coin-1.jpg" alt="coin"/></pre>
+			<pre style="text-align: center;"><img src="../Files/coin-2.jpg" alt="coin"/></pre>
+			
+			在上图中，你可以看到使用简单的阈值和轮廓检测无法提取的对象示例，因为这些对象是互相接触的、重叠或两者兼具的。轮廓提取过程会将每组触摸对象视为单个对象，而不是多个对象 ——它不知道这是多个钱币。<br><br>
+			
+			<h2>是吗？</h2>
+			我们来演示简单阈值和轮廓检测的局限性。我们采用以下步骤：
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-contour-test.png" alt="flow chart"/></pre>
+			我们先载入图像，并进行均值滤波(可见<a href="../image-filtering/index2.html">均值滤波</a>)：
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;vector&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;coin-1.jpg&quot;</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">//读入图像  </span>
+
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">shifted,</span> <span style="color: #f8f8f2">bin;</span> 
+     <span style="color: #f8f8f2">pyrMeanShiftFiltering(img,</span> <span style="color: #f8f8f2">shifted,</span> <span style="color: #ae81ff">21</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">51</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 均值滤波</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;After MeanShiftFiltering&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">shifted);</span> <span style="color: #75715e">// 显示</span>
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-after-meanshift-filtering-1.png" alt="after mean shift filtering"/></pre>
+			
+			然后我们把它转换成灰度图并二进制化(简单阈值流程)：
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #f8f8f2">cvtColor(shifted,</span> <span style="color: #f8f8f2">shifted,</span> <span style="color: #f8f8f2">COLOR_BGR2GRAY);</span> <span style="color: #75715e">// 转成灰度图</span>
+     <span style="color: #f8f8f2">threshold(shifted,</span> <span style="color: #f8f8f2">bin,</span> <span style="color: #ae81ff">70</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">THRESH_BINARY);</span> <span style="color: #75715e">// 二进制</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;After Threshold&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">bin);</span>  <span style="color: #75715e">// 显示</span>
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-threshold-1.png" alt="segmentation"/></pre>
+			
+			最后进行轮廓检测，还有一些花桥的绘图，可视化结果：
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #f8f8f2">RNG</span> <span style="color: #f8f8f2">rng(</span><span style="color: #ae81ff">12345</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 随机数</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">res;</span> <span style="color: #75715e">// 结果图</span>
+     <span style="color: #f8f8f2">img.copyTo(res);</span> 
+
+     <span style="color: #75715e">// 轮廓检测</span>
+     <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span> 
+     <span style="color: #f8f8f2">findContours(bin,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">RETR_EXTERNAL,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE);</span> 
+
+     <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">contours.size();</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span>
+          <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">color</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">256</span><span style="color: #f8f8f2">));</span> <span style="color: #75715e">// 随机颜色</span>
+          <span style="color: #f8f8f2">drawContours(res,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">i,</span> <span style="color: #f8f8f2">color,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 绘出轮廓</span>
+          
+          <span style="color: #75715e">// 算出重心点mc</span>
+          <span style="color: #f8f8f2">Moments</span> <span style="color: #f8f8f2">mu</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">moments(contours[i]);</span>
+          <span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">mc</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Point2f(</span><span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">float</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(mu.m10</span> <span style="color: #f92672">/</span> <span style="color: #f8f8f2">(mu.m00</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">1e-5</span><span style="color: #f8f8f2">))</span> <span style="color: #f92672">-</span> <span style="color: #ae81ff">10</span><span style="color: #f8f8f2">,</span>
+                             <span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">float</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(mu.m01</span> <span style="color: #f92672">/</span> <span style="color: #f8f8f2">(mu.m00</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">1e-5</span><span style="color: #f8f8f2">))</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">10</span><span style="color: #f8f8f2">);</span>
+          
+          <span style="color: #f8f8f2">putText(res,</span> <span style="color: #f8f8f2">to_string(i),</span> <span style="color: #f8f8f2">mc,</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 写上轮廓ID</span>
+     <span style="color: #f8f8f2">}</span>
+     <span style="color: #f8f8f2">scaleAdd(img,</span> <span style="color: #ae81ff">0.4</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">res,</span> <span style="color: #f8f8f2">res);</span> <span style="color: #75715e">// 叠加结构图</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Result&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">res);</span> <span style="color: #75715e">// 显示</span>
+
+     <span style="color: #75715e">// 等待退出</span>
+     <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">destroyAllWindows();</span> 
+
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-result-1.png" alt="segmentation"/></pre>
+			如上可见，结果非常地糟糕。使用简单的阈值检测和轮廓检测，我们的程序报告图像中只有3个硬币，即使很明显有9个。<br><br>
+			
+			出现此问题的原因是硬币的边界在图像中相互接触，因此findContours()函数仅将一组硬币视为单个对象，而实际上它们是多个单独的硬币。<br><br>
+
+			<div class="note">注：一系列形态变换（特别是侵蚀）可以帮助我们获得此特定图像的最佳结果。但是，对于重叠的物体，这些形态变换是不够的。出于这个示例的原因，我们假设形态运算不是可行的选择，因此我们可以探索距离变换和分水岭算法。</div><br><br>
+			
+			<h2>解决方案</h2>
+			
+			<h3>距离变换</h3>
+			距离变换是一种运算符，是形态换算的其中一种，通常仅应用于二进制图像。变换的结果是一个看起来类似于输入图像的灰度图像，不同之处在于前景区域(白色像素区域)内的像素，灰度强度发生了变化。这些像素的灰度强度反映了那个点距最近的(黑色)边界的距离。<br><br>
+
+			联想距离变换的一种方法是，首先想象输入二进制图像中的前景区域是由某种均匀的缓慢燃烧的易燃材料制成的。然后想象同时在前景区域边界上的所有点处着火，并让火燃烧到内部。如果然后用火第一次到达该点所花费的时间标记内部的每个点，则我们已经有效地计算了该区域的距离变换。下图显示了简单矩形的距离变换：
+			
+			<pre style="text-align: center;"><img src="../Files/distance-transform.gif" alt="distance-transform-1"/><br>简单矩形的距离变换。注：这里使用的是“棋盘”距离度量(Chessboard distance, OpenCV：DIST_C)。</pre>
+			
+			距离转换有几种不同的类型，这取决于使用哪种距离度量来确定像素之间的距离。上图中的示例使用“棋盘”距离度量，但也可以使用欧氏距离度量和“城市街区”度量。
+			
+			<h4>距离度量 DistanceTypes</h4>
+			<pre style="font-family: San Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, 'sans-serif';"><ol><li><strong>欧氏距离(Euclidean distance)</strong>，OpenCV：DIST_L2<br>也称L2距离。distance = sqrt[(x<sub>2</sub>-x<sub>1</sub>)<sup>2</sup> + (y<sub>2</sub>-y<sub>1</sub>)<sup>2</sup>]</li>
+			<li><strong>“城市街区”距离(City block distance)</strong>，OpenCV：DIST_L1<br>也称L1距离或曼哈顿距离(Manhattan distance)。distance = |x<sub>2</sub>-x<sub>1</sub>| + |y<sub>2</sub>-y<sub>1</sub>|</li>
+			<li><strong>“棋盘”距离(Chessboard distance)</strong>，OpenCV：DIST_C<br>distance = max(|x<sub>2</sub>-x<sub>1</sub>|, |y<sub>2</sub>-y<sub>1</sub>|)</li></ol></pre>
+			
+			<div class="note">注，我们一般使用欧氏距离，然而最后两个指标通常比欧式要快得多，因此有时在速度至关重要但准确性不太重要的情况下使用。</div>
+			
+			选择了度量，接下来还有许多方法可以计算二进制图像的距离变换。一种直观但极其无效率的方法是使用适当的内核结构元素执行多次连续腐蚀，直到图像的所有前景区域白色像素都被侵蚀掉为止。每个像素都标上消失之前必须执行的腐蚀次数，这就是它的距离变换。应使用的实际结构元素取决于选择的距离度量。3×3正方形元素适合“棋盘”距离变换，十字形元素适合“城市街区”距离变换，而圆盘形元素适合欧氏距离变换。当然，实际上，不可能在小规模的离散网格上生成良好的圆盘状元素，但是有些算法会在每次腐蚀时改变结构元素，以近似圆形元素的结果。典型地，对于快速，粗略地估计欧氏距离，使用3×3内核。更精确地估计欧氏距离，可以使用5×5内核或精确算法。<br><br>
+			
+			在这里，我们通过一些示例说明欧几里德距离变换。
+			<pre style="text-align: center;"><img src="../Files/distance-transform-example-1.png" alt="example"/></pre>
+			<pre style="text-align: center;"><img src="../Files/distance-transform-example-2.png" alt="example"/></pre>
+			<pre style="text-align: center;"><img src="../Files/distance-transform-example-3.png" alt="example"/></pre>
+			距离变换对图像噪音很敏感
+			<pre style="text-align: center;"><img src="../Files/distance-transform-example-4.png" alt="example"/></pre>
+			<pre style="text-align: center;"><img src="../Files/distance-transform-example-5.png" alt="example"/></pre>
+			
+			<h3>OpenCV distanceTransform</h3>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>distanceTransform</strong>(Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">dst,</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">labels,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">distanceType,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">maskSize,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">labelType</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">DIST_LABEL_CCOMP)</span></code>
+			
+			<h4>参数</h4>
+			<pre>
+src          —— 8位单通道(二进制)源图像。
+dst          —— 输出具有计算出的距离的图像。
+                它是与src大小相同的8位或32位浮点单通道图像(CV_32FC1)。
+labels       —— 输出标签的二维数组(离散Voronoi图)。
+                它的类型为CV_32SC1，大小与src相同。
+distanceType —— 距离的类型，见上"距离度量DistanceTypes"
+maskSize     —— 距离变换内核的大小。
+                3、5或DIST_MASK_PRECISE(精准算法，仅能和DIST_L2使用)。
+                在DIST_L1或DIST_C距离类型的情况下，该参数被强制为3，
+                因为3×3遮罩与5×5或更大的光圈具有相同的结果。
+labelType    —— 要构建的标签数组的类型。</pre>
+			
+			<h4>重载</h4>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>distanceTransform</strong>(Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">src,</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">dst,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">distanceType,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">maskSize,</span> <span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">dstType</span><span style="color: #f92672">=</span><span style="color: #f8f8f2">CV_32F)</span></code>
+			
+			<h4>参数</h4>
+			<pre>
+src          —— 8位单通道（二进制）源图像。
+dst          —— 输出具有计算出的距离的图像。
+                它是大小与src相同的8位或32位浮点单通道图像。
+distanceType —— 距离的类型，见上"距离度量DistanceTypes"
+maskSize     —— 距离变换内核的大小。
+                3、5或DIST_MASK_PRECISE(精准算法，仅能和DIST_L2使用)。
+                在DIST_L1或DIST_C距离类型的情况下，该参数被强制为3，
+                因为3×3遮罩与5×5或更大的光圈具有相同的结果。
+dstType      —— 输出图像的类型。它可以是CV_8U或CV_32F。
+                CV_8U类型只能用于该函数的第一个变体，
+                并且distanceType==DIST_L1。</pre><br><br>
+			
+			<h3>分水岭算法(Watershed)</h3>
+			分水岭是用于分割的经典算法，也就是说，用于分离图像中的不同对象。
+			
+			<h4>哲学</h4>
+			任何灰度图像都可以视为地形图表面，其中高强度表示山峰和丘陵，而低强度表示山谷。你开始用不同颜色的水（标签）填充每个孤立的山谷（局部最小值）。随着水的上升，取决于附近的峰（梯度），来自不同山谷，显然具有不同颜色的水将开始合并。为了避免这种情况，你可以在水汇合的位置建造围墙。你将继续填充水和建造围墙的工作，直到所有山峰都在水下。然后，你创建的围墙将会是最后的图像分割结果。这是分水岭背后的“哲学”。
+			<pre style="text-align: center;"><img src="../Files/watershed-1.gif" alt="watershed"/><img src="../Files/watershed.gif" alt="watershed"/></pre>
+			
+			<h4>基于标记的分水岭算法</h4>
+			但是由于噪声或图像中的任何其他不规则性，上面方法会造成过分分割的结果。因此，OpenCV实施了基于标记的分水岭算法，你可以在其中指定要合并的所有山谷点，哪些不是。这像是一个交互式图像分割。我们要做的是为我们知道的对象提供不同的标签。用一种颜色（或强度）标记我们确定为前景的区域，用另一种颜色标记我们确定为背景的区域，最后确定我们不确定的区域，将其标记为0。这就是我们的标记。然后应用分水岭算法，我们的标记将使用给定的标签进行更新，并且对象的边界的值为-1。这就像是从你指定的那几个区域开始倒人水。
+			
+			<pre style="text-align: center;"><img src="../Files/watershed-marker-1.gif" alt="with marker"/><img src="../Files/watershed-marker-2.gif" alt="with marker"/><img src="../Files/watershed-marker-3.gif" alt="with marker"/><br>基于标记控制的分水岭</pre>
+			
+			<h3>OpenCV watershed</h3>
+			<code><span style="color: #66d9ef">void</span> <span style="color: #f8f8f2"><strong>watershed</strong>(Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">image,</span> <span style="color: #f8f8f2">Mat</span> <span style="color: #f92672">&amp;</span> <span style="color: #f8f8f2">markers)</span></code>
+			
+			<h4>参数</h4>
+			<pre>
+image   —— 输入。8位3通道CV_8U3C图像。
+markers —— 输入/输出。标记的32位单通道CV_32FC1图像(map)。它的大小应与image相同。</pre>
+			
+			<h3>所以？</h3>
+			说了那么多理论。我们回归“正题”——解决方案？在流程中我们添加距离变换和分水岭算法。流程图如下：
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-final-flow.png" alt="final flow"/></pre>
+			
+			由于代码改动得多，我们再从头开始说起。<br><br>
+			
+			先读取图像，然后均值滤波和简单阈值：
+			<code><span style="color: #75715e">#include &lt;opencv2/opencv.hpp&gt;</span>
+<span style="color: #75715e">#include &lt;vector&gt;</span>
+
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">cv;</span>
+<span style="color: #66d9ef">using</span> <span style="color: #66d9ef">namespace</span> <span style="color: #f8f8f2">std;</span> 
+
+<span style="color: #66d9ef">int</span> <span style="color: #a6e22e">main</span><span style="color: #f8f8f2">()</span> <span style="color: #f8f8f2">{</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">img</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">imread(</span><span style="color: #e6db74">&quot;coin-1.jpg&quot;</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">//读入图像  </span>
+
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">shifted,</span> <span style="color: #f8f8f2">bin;</span> <span style="color: #75715e">// 结果图</span>
+     <span style="color: #f8f8f2">pyrMeanShiftFiltering(img,</span> <span style="color: #f8f8f2">shifted,</span> <span style="color: #ae81ff">21</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">51</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 均值滤波</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;After MeanShiftFiltering&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">shifted);</span> <span style="color: #75715e">// 显示</span>
+
+     <span style="color: #f8f8f2">cvtColor(shifted,</span> <span style="color: #f8f8f2">shifted,</span> <span style="color: #f8f8f2">COLOR_BGR2GRAY);</span> 
+     <span style="color: #f8f8f2">threshold(shifted,</span> <span style="color: #f8f8f2">bin,</span> <span style="color: #ae81ff">70</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">THRESH_BINARY);</span> <span style="color: #75715e">// 阈值</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;After Threshold&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">bin);</span>  <span style="color: #75715e">// 显示</span>
+<span style="color: #f8f8f2">...</span></code>
+			
+			然后进行距离变换：
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #75715e">// 距离变换</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">dist,</span> <span style="color: #f8f8f2">markers;</span>
+     <span style="color: #f8f8f2">distanceTransform(bin,</span> <span style="color: #f8f8f2">dist,</span> <span style="color: #f8f8f2">DIST_L2,</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 欧氏距离</span>
+
+     <span style="color: #75715e">// 归一化范围={0.0，1.0}，以方便进行可视化和阈值化</span>
+     <span style="color: #f8f8f2">normalize(dist,</span> <span style="color: #f8f8f2">dist,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">1.0</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">NORM_MINMAX);</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;After distanceTransform&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">dist);</span>
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-after-distancetransform.png" alt="after distance transform"/></pre>
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #75715e">// 阈值获取dist的山峰部分，也就是确定肯定是前景的区域</span>
+     <span style="color: #f8f8f2">threshold(dist,</span> <span style="color: #f8f8f2">dist,</span> <span style="color: #ae81ff">0.5</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">1.0</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">THRESH_BINARY);</span>
+
+     <span style="color: #75715e">// 转换成CV_8U，因为之后的findContours需要</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">sure_fg;</span>
+     <span style="color: #f8f8f2">dist.convertTo(sure_fg,</span> <span style="color: #f8f8f2">CV_8U);</span> 
+     <span style="color: #f8f8f2">sure_fg</span> <span style="color: #f92672">*=</span> <span style="color: #ae81ff">255</span><span style="color: #f8f8f2">;</span> 
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Sure foreground&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">sure_fg);</span>
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-sure-foreground.png" alt="sure foreground"/><br>“肯定是前景区域”蒙版</pre>
+			
+			我们以不同颜色(灰度)标准前景区域在markers上。确保背景区域不是0而是1。然后再计算未知的区域：
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #f8f8f2">connectedComponents(sure_fg,</span> <span style="color: #f8f8f2">markers);</span> <span style="color: #75715e">// 前景标记，每个标记有不同的颜色(灰度)</span>
+     <span style="color: #f8f8f2">markers</span> <span style="color: #f92672">+=</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">;</span> <span style="color: #75715e">// 整个图+1，使背景不是0而是1值</span>
+
+     <span style="color: #75715e">// 未知区域标记</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">unknown;</span> 
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">kernel</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Mat</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">ones(</span><span style="color: #ae81ff">3</span><span style="color: #f8f8f2">,</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">CV_8U);</span> 
+     <span style="color: #f8f8f2">dilate(bin,</span> <span style="color: #f8f8f2">bin,</span> <span style="color: #f8f8f2">kernel,</span> <span style="color: #f8f8f2">Point(</span><span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">3</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 膨胀硬币二进制图3轮</span>
+     <span style="color: #f8f8f2">unknown</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">bin</span> <span style="color: #f92672">-</span> <span style="color: #f8f8f2">sure_fg;</span> <span style="color: #75715e">// 减去肯定使前景的区域，剩下的就是“未知”</span>
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Unknown&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">unknown);</span> 
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-unknown.png" alt="unknown"/><br>“未知区域”蒙版</pre>
+			
+			我们把未知区域蒙版从CV_8U转换成CV_32S(与markers桶类型)。然后markers减去未知区域。这样以来，在markers上，0=未知区域。
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">unknown_32s;</span> 
+     <span style="color: #f8f8f2">unknown.convertTo(unknown_32s,</span> <span style="color: #f8f8f2">CV_32S);</span> 
+
+     <span style="color: #f8f8f2">markers</span> <span style="color: #f92672">-=</span> <span style="color: #f8f8f2">unknown_32s;</span> 
+     
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Markers&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">markers</span><span style="color: #f92672">*</span><span style="color: #ae81ff">10000</span><span style="color: #f8f8f2">);</span> 
+<span style="color: #f8f8f2">...</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-markers.png" alt="markers"/><br>最终markers</pre>
+			
+			我们进行分水岭算法，并用比较“开黑”的方式进行轮廓检测。最后一些花桥的可视化结果。
+			
+			<code><span style="color: #f8f8f2">...</span>
+     <span style="color: #75715e">// 分水岭算法</span>
+     <span style="color: #f8f8f2">watershed(img,</span> <span style="color: #f8f8f2">markers);</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">markers_8u;</span> <span style="color: #75715e">// markers转成CV_8U，inRange所需</span>
+     <span style="color: #f8f8f2">markers.convertTo(markers_8u,</span> <span style="color: #f8f8f2">CV_8U);</span> 
+
+     <span style="color: #66d9ef">double</span> <span style="color: #f8f8f2">min_val,</span> <span style="color: #f8f8f2">max_val;</span> 
+     <span style="color: #f8f8f2">minMaxLoc(markers_8u,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">min_val,</span> <span style="color: #f92672">&amp;</span><span style="color: #f8f8f2">max_val);</span> <span style="color: #75715e">// 获取markers中的最大值，可以从中知道有多少个区域</span>
+
+     <span style="color: #f8f8f2">RNG</span> <span style="color: #a6e22e">rng</span><span style="color: #f8f8f2">(</span><span style="color: #ae81ff">12345</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 随机数</span>
+     <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">res;</span> 
+     <span style="color: #f8f8f2">img.copyTo(res);</span> 
+     <span style="color: #66d9ef">for</span> <span style="color: #f8f8f2">(</span><span style="color: #66d9ef">int</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">=</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">;</span> <span style="color: #f8f8f2">i</span><span style="color: #f92672">&lt;=</span><span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">int</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(max_val);</span> <span style="color: #f92672">++</span><span style="color: #f8f8f2">i)</span> <span style="color: #f8f8f2">{</span> <span style="color: #75715e">// 我们从2开始，因为0=边界，1=背景，&gt;1 各个前景</span>
+          <span style="color: #f8f8f2">Mat</span> <span style="color: #f8f8f2">temp;</span> 
+          <span style="color: #f8f8f2">inRange(markers_8u,</span> <span style="color: #f8f8f2">Scalar(i),</span> <span style="color: #f8f8f2">Scalar(i),</span> <span style="color: #f8f8f2">temp);</span> <span style="color: #75715e">// 提取特定灰度的区域</span>
+          <span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">vector</span><span style="color: #f92672">&lt;</span><span style="color: #f8f8f2">Point</span><span style="color: #f92672">&gt;</span> <span style="color: #f92672">&gt;</span> <span style="color: #f8f8f2">contours;</span> 
+          <span style="color: #f8f8f2">findContours(temp,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #f8f8f2">RETR_EXTERNAL,</span> <span style="color: #f8f8f2">CHAIN_APPROX_SIMPLE);</span> <span style="color: #75715e">// 轮廓检测，肯定会只有一个轮廓，如果不是1就有问题</span>
+          <span style="color: #f8f8f2">Scalar</span> <span style="color: #f8f8f2">color</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Scalar(rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">rng.uniform(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span><span style="color: #ae81ff">200</span><span style="color: #f8f8f2">));</span> <span style="color: #75715e">//随机颜色</span>
+          <span style="color: #f8f8f2">drawContours(res,</span> <span style="color: #f8f8f2">contours,</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">color,</span> <span style="color: #f92672">-</span><span style="color: #ae81ff">1</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 绘出轮廓</span>
+          <span style="color: #75715e">// 算出重心点mc</span>
+          <span style="color: #f8f8f2">Moments</span> <span style="color: #f8f8f2">mu</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">moments(contours[</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">]);</span>
+          <span style="color: #f8f8f2">Point2f</span> <span style="color: #f8f8f2">mc</span> <span style="color: #f92672">=</span> <span style="color: #f8f8f2">Point2f(</span><span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">float</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(mu.m10</span> <span style="color: #f92672">/</span> <span style="color: #f8f8f2">(mu.m00</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">1e-5</span><span style="color: #f8f8f2">))</span> <span style="color: #f92672">-</span> <span style="color: #ae81ff">10</span><span style="color: #f8f8f2">,</span>
+                             <span style="color: #66d9ef">static_cast</span><span style="color: #f92672">&lt;</span><span style="color: #66d9ef">float</span><span style="color: #f92672">&gt;</span><span style="color: #f8f8f2">(mu.m01</span> <span style="color: #f92672">/</span> <span style="color: #f8f8f2">(mu.m00</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">1e-5</span><span style="color: #f8f8f2">))</span> <span style="color: #f92672">+</span> <span style="color: #ae81ff">10</span><span style="color: #f8f8f2">);</span>
+          
+          <span style="color: #f8f8f2">putText(res,</span> <span style="color: #f8f8f2">to_string(i</span><span style="color: #f92672">-</span><span style="color: #ae81ff">2</span><span style="color: #f8f8f2">),</span> <span style="color: #f8f8f2">mc,</span> <span style="color: #f8f8f2">FONT_HERSHEY_SIMPLEX,</span> <span style="color: #ae81ff">1</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">Scalar</span><span style="color: #f92672">::</span><span style="color: #f8f8f2">all(</span><span style="color: #ae81ff">255</span><span style="color: #f8f8f2">),</span> <span style="color: #ae81ff">2</span><span style="color: #f8f8f2">);</span> <span style="color: #75715e">// 写下编号</span>
+     <span style="color: #f8f8f2">}</span>
+     
+     <span style="color: #f8f8f2">scaleAdd(img,</span> <span style="color: #ae81ff">0.5</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">res,</span> <span style="color: #f8f8f2">res);</span> 
+     <span style="color: #f8f8f2">imshow(</span><span style="color: #e6db74">&quot;Result&quot;</span><span style="color: #f8f8f2">,</span> <span style="color: #f8f8f2">res);</span> <span style="color: #75715e">// 显示结果</span>
+
+     <span style="color: #75715e">// 等待退出</span>
+     <span style="color: #f8f8f2">waitKey(</span><span style="color: #ae81ff">0</span><span style="color: #f8f8f2">);</span> 
+     <span style="color: #f8f8f2">destroyAllWindows();</span> 
+
+     <span style="color: #66d9ef">return</span> <span style="color: #ae81ff">0</span><span style="color: #f8f8f2">;</span> 
+<span style="color: #f8f8f2">}</span></code>
+			
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-result.png" alt="final result"/></pre>
+			
+			另外张图试试：
+			<pre style="text-align: center;"><img src="../Files/image-segmentation-result-2.png" alt="final result"/></pre>
+			
+
+		</div>
+		<script type="text/javascript" src="../index.js"></script>
+	</body>
+</html>
+			
+			
+			
+			
+			
+			
+			
+			
